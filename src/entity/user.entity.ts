@@ -17,7 +17,7 @@ export class User {
   @Column({ type: 'varchar', length: 512, nullable: true })
   profileURL?: string;
 
-  @Column({ type: 'number', default: 0 })
+  @Column({ type: 'int', default: 0 })
   point: number;
 
   @OneToOne(() => EatParty, (party) => party.host)
