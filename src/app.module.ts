@@ -5,6 +5,8 @@ import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthMiddleware } from './auth/auth.middleware';
+import { PartyModule } from './party/party.module';
+import { UserModule } from './user/user.module';
 import config from './config/config';
 
 @Module({
@@ -27,6 +29,8 @@ import config from './config/config';
         synchronize: true,
       }),
     }),
+    PartyModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
