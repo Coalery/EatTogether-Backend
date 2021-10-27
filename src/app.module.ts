@@ -1,7 +1,6 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthMiddleware } from './auth/auth.middleware';
@@ -15,20 +14,7 @@ import config from './config/config';
       isGlobal: true,
       load: [config],
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'mysql',
-        host: configService.get('database.host'),
-        port: configService.get('database.port'),
-        username: configService.get('database.user'),
-        password: configService.get('database.password'),
-        database: configService.get('database.name'),
-        entities: [join(__dirname, '/**/*.entity{.ts,.js}')],
-        synchronize: true,
-      }),
-    }),
+    TypeOrmModule.forRoot(),
     PartyModule,
     UserModule,
   ],
