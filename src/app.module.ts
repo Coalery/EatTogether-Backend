@@ -7,6 +7,8 @@ import { AuthMiddleware } from './auth/auth.middleware';
 import { PartyModule } from './party/party.module';
 import { UserModule } from './user/user.module';
 import config from './config/config';
+import { APP_FILTER } from '@nestjs/core';
+import { HttpExceptionFilter } from './filter/http_exception.filter';
 
 @Module({
   imports: [
@@ -19,7 +21,10 @@ import config from './config/config';
     UserModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+  ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
