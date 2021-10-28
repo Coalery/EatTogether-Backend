@@ -14,7 +14,11 @@ export class PartyService {
     private partyRepository: Repository<EatParty>,
   ) {}
 
-  async create(host: User, data: CreatePartyDto): Promise<EatParty | null> {
+  async findOne(id: number): Promise<EatParty | undefined> {
+    return await this.partyRepository.findOne({ id });
+  }
+
+  async create(host: User, data: CreatePartyDto): Promise<EatParty> {
     const party: EatParty = new EatParty();
     party.title = data.title;
     party.description = data.description;

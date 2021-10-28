@@ -1,4 +1,14 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Req,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { auth } from 'firebase-admin';
 import { Resp } from 'src/common/response';
@@ -15,10 +25,23 @@ export class PartyController {
     private partyService: PartyService,
   ) {}
 
+  @Get(':id')
+  async getParty(@Param('id', ParseIntPipe) id: number) {
+    const party: EatParty = await this.partyService.findOne(id);
+    if (!party) {
+      throw new HttpException(Resp.error(404), HttpStatus.NOT_FOUND);
+    }
+    return Resp.ok(party);
+  }
+
   @Post()
   async createParty(@Req() request: Request, @Body() data: CreatePartyDto) {
     const token: auth.DecodedIdToken = request['gfUser'];
     const user: User = await this.userService.findOne(token.uid);
+    if (!user) {
+      throw new HttpException(Resp.error(403), HttpStatus.FORBIDDEN);
+    }
+
     const party: EatParty = await this.partyService.create(user, data);
     return Resp.ok(party);
   }
