@@ -24,6 +24,12 @@ export class EatParty {
   @Column({ type: 'varchar', length: 100 })
   restuarant: string;
 
+  @Column({ type: 'int' })
+  meetLatitude: number;
+
+  @Column({ type: 'int' })
+  meetLongitude: number;
+
   @OneToOne(() => User)
   @JoinColumn()
   host: User;
