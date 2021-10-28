@@ -8,4 +8,8 @@ export class CreatePartyDto {
 
   @IsNotEmpty()
   restuarant: string;
+
+  meetLatitude: number;
+
+  meetLongitude: number;
 }
