@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthMiddleware } from './middleware/auth.middleware';
+import { AuthMiddleware } from './middleware/auth/auth.middleware';
 import { PartyModule } from './party/party.module';
 import { UserModule } from './user/user.module';
 import config from './config/config';
