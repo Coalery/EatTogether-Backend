@@ -4,7 +4,7 @@ import { validate } from 'class-validator';
 import { Resp } from 'src/common/response';
 import { EatParty } from 'src/entity/eat_party.entity';
 import { User } from 'src/entity/user.entity';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 import { CreatePartyDto } from './create_party.dto';
 
 @Injectable()
@@ -35,5 +35,14 @@ export class PartyService {
 
     const result = this.partyRepository.create(party);
     return result;
+  }
+
+  async delete(user: User, partyId: number): Promise<DeleteResult> {
+    const party: EatParty = await this.partyRepository.findOne(partyId);
+    if (party.host.id !== user.id) {
+      throw new HttpException(Resp.error(403), HttpStatus.FORBIDDEN);
+    }
+
+    return await this.partyRepository.delete({ id: partyId });
   }
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -10,20 +11,16 @@ import {
   Req,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { auth } from 'firebase-admin';
 import { Resp } from 'src/common/response';
 import { EatParty } from 'src/entity/eat_party.entity';
 import { User } from 'src/entity/user.entity';
-import { UserService } from 'src/user/user.service';
+import { DeleteResult } from 'typeorm';
 import { CreatePartyDto } from './create_party.dto';
 import { PartyService } from './party.service';
 
 @Controller('party')
 export class PartyController {
-  constructor(
-    private userService: UserService,
-    private partyService: PartyService,
-  ) {}
+  constructor(private partyService: PartyService) {}
 
   @Get(':id')
   async getParty(@Param('id', ParseIntPipe) id: number) {
@@ -35,14 +32,19 @@ export class PartyController {
   }
 
   @Post()
-  async createParty(@Req() request: Request, @Body() data: CreatePartyDto) {
-    const token: auth.DecodedIdToken = request['gfUser'];
-    const user: User = await this.userService.findOne(token.uid);
-    if (!user) {
-      throw new HttpException(Resp.error(403), HttpStatus.FORBIDDEN);
-    }
-
+  async createParty(@Req() req: Request, @Body() data: CreatePartyDto) {
+    const user: User = req['user'];
     const party: EatParty = await this.partyService.create(user, data);
     return Resp.ok(party);
+  }
+
+  @Delete(':id')
+  async deleteParty(
+    @Req() req: Request,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    const user: User = req['user'];
+    const result: DeleteResult = await this.partyService.delete(user, id);
+    return Resp.ok(result);
   }
 }
