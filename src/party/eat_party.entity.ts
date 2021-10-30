@@ -7,7 +7,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from './user.entity';
+import { User } from '../entity/user.entity';
 
 @Entity({ name: 'EatParty' })
 export class EatParty {
@@ -22,15 +22,19 @@ export class EatParty {
   description?: string;
 
   @Column({ type: 'varchar', length: 100 })
+  @IsNotEmpty()
   restuarant: string;
 
   @Column({ type: 'int' })
+  @IsNotEmpty()
   meetLatitude: number;
 
   @Column({ type: 'int' })
+  @IsNotEmpty()
   meetLongitude: number;
 
   @Column({ type: 'int' })
+  @IsNotEmpty()
   goalPrice: number;
 
   @OneToOne(() => User)

@@ -12,10 +12,10 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { Resp } from 'src/common/response';
-import { EatParty } from 'src/entity/eat_party.entity';
+import { EatParty } from 'src/party/eat_party.entity';
 import { User } from 'src/entity/user.entity';
 import { DeleteResult } from 'typeorm';
-import { CreatePartyDto } from './create_party.dto';
+import { CreatePartyDto } from './party.dto';
 import { PartyService } from './party.service';
 
 @Controller('party')

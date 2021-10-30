@@ -1,6 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 import { Column, Entity, ManyToOne, OneToOne, PrimaryColumn } from 'typeorm';
-import { EatParty } from './eat_party.entity';
+import { EatParty } from '../party/eat_party.entity';
 
 @Entity({ name: 'User' })
 export class User {

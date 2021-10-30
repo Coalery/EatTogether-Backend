@@ -2,10 +2,10 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { validate } from 'class-validator';
 import { Resp } from 'src/common/response';
-import { EatParty } from 'src/entity/eat_party.entity';
+import { EatParty } from 'src/party/eat_party.entity';
 import { User } from 'src/entity/user.entity';
 import { DeleteResult, Repository } from 'typeorm';
-import { CreatePartyDto } from './create_party.dto';
+import { CreatePartyDto } from './party.dto';
 
 @Injectable()
 export class PartyService {
