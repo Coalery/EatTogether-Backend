@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsInt, IsNotEmpty, IsNumber, Length, Min } from 'class-validator';
 import {
   Column,
   Entity,
@@ -16,6 +16,7 @@ export class Party {
 
   @Column({ type: 'varchar', length: 100 })
   @IsNotEmpty()
+  @Length(1, 100)
   title: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
@@ -23,18 +24,25 @@ export class Party {
 
   @Column({ type: 'varchar', length: 100 })
   @IsNotEmpty()
+  @Length(1, 100)
   restuarant: string;
 
   @Column({ type: 'int' })
   @IsNotEmpty()
+  @IsNumber()
+  @Min(0.0)
   meetLatitude: number;
 
   @Column({ type: 'int' })
   @IsNotEmpty()
+  @IsNumber()
+  @Min(0.0)
   meetLongitude: number;
 
   @Column({ type: 'int' })
   @IsNotEmpty()
+  @IsInt()
+  @Min(0)
   goalPrice: number;
 
   @OneToOne(() => User)

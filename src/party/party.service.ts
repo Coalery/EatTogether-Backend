@@ -5,7 +5,7 @@ import { Resp } from 'src/common/response';
 import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
 import { DeleteResult, Repository } from 'typeorm';
-import { CreatePartyDto } from './party.dto';
+import { CreatePartyDto, EditPartyDto } from './party.dto';
 
 @Injectable()
 export class PartyService {
@@ -36,6 +36,21 @@ export class PartyService {
 
     const result = this.partyRepository.create(party);
     return result;
+  }
+
+  async edit(user: User, partyId: number, data: EditPartyDto): Promise<Party> {
+    let party: Party = await this.partyRepository.findOne(partyId);
+    if (party.host.id !== user.id) {
+      throw new HttpException(Resp.error(403), HttpStatus.FORBIDDEN);
+    }
+
+    party = { ...party, ...data };
+    const erros = await validate(party);
+    if (erros.length > 0) {
+      throw new HttpException(Resp.error(400), HttpStatus.BAD_REQUEST);
+    }
+
+    return await this.partyRepository.save(data);
   }
 
   async delete(user: User, partyId: number): Promise<DeleteResult> {
