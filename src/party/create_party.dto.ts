@@ -12,4 +12,6 @@ export class CreatePartyDto {
   meetLatitude: number;
 
   meetLongitude: number;
+
+  goalPrice: number;
 }

@@ -26,6 +26,7 @@ export class PartyService {
     party.host = host;
     party.meetLatitude = data.meetLatitude;
     party.meetLongitude = data.meetLongitude;
+    party.goalPrice = data.goalPrice;
     party.participant = [];
 
     const errors = await validate(party);

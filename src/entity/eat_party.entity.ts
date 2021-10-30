@@ -30,6 +30,9 @@ export class EatParty {
   @Column({ type: 'int' })
   meetLongitude: number;
 
+  @Column({ type: 'int' })
+  goalPrice: number;
+
   @OneToOne(() => User)
   @JoinColumn()
   host: User;
