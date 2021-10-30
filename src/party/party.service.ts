@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { validate } from 'class-validator';
 import { Resp } from 'src/common/response';
-import { EatParty } from 'src/party/eat_party.entity';
+import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
 import { DeleteResult, Repository } from 'typeorm';
 import { CreatePartyDto } from './party.dto';
@@ -10,16 +10,16 @@ import { CreatePartyDto } from './party.dto';
 @Injectable()
 export class PartyService {
   constructor(
-    @InjectRepository(EatParty)
-    private partyRepository: Repository<EatParty>,
+    @InjectRepository(Party)
+    private partyRepository: Repository<Party>,
   ) {}
 
-  async findOne(id: number): Promise<EatParty | undefined> {
+  async findOne(id: number): Promise<Party | undefined> {
     return await this.partyRepository.findOne({ id });
   }
 
-  async create(host: User, data: CreatePartyDto): Promise<EatParty> {
-    const party: EatParty = new EatParty();
+  async create(host: User, data: CreatePartyDto): Promise<Party> {
+    const party: Party = new Party();
     party.title = data.title;
     party.description = data.description;
     party.restuarant = data.restuarant;
@@ -39,7 +39,7 @@ export class PartyService {
   }
 
   async delete(user: User, partyId: number): Promise<DeleteResult> {
-    const party: EatParty = await this.partyRepository.findOne(partyId);
+    const party: Party = await this.partyRepository.findOne(partyId);
     if (party.host.id !== user.id) {
       throw new HttpException(Resp.error(403), HttpStatus.FORBIDDEN);
     }

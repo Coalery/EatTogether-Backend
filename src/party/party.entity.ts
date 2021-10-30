@@ -9,8 +9,8 @@ import {
 } from 'typeorm';
 import { User } from '../user/user.entity';
 
-@Entity({ name: 'EatParty' })
-export class EatParty {
+@Entity({ name: 'Party' })
+export class Party {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
