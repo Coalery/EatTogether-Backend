@@ -1,15 +1,10 @@
-import { IsNotEmpty } from 'class-validator';
-
 export class CreatePartyDto {
-  @IsNotEmpty()
   title: string;
-
   description?: string;
-
-  @IsNotEmpty()
   restuarant: string;
-
   meetLatitude: number;
-
   meetLongitude: number;
+  goalPrice: number;
 }
+
+export type EditPartyDto = Partial<CreatePartyDto>;

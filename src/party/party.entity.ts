@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsInt, IsNotEmpty, IsNumber, Length, Min } from 'class-validator';
 import {
   Column,
   Entity,
@@ -7,28 +7,43 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from './user.entity';
+import { User } from '../user/user.entity';
 
-@Entity({ name: 'EatParty' })
-export class EatParty {
+@Entity({ name: 'Party' })
+export class Party {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
   @Column({ type: 'varchar', length: 100 })
   @IsNotEmpty()
+  @Length(1, 100)
   title: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   description?: string;
 
   @Column({ type: 'varchar', length: 100 })
+  @IsNotEmpty()
+  @Length(1, 100)
   restuarant: string;
 
   @Column({ type: 'int' })
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(0.0)
   meetLatitude: number;
 
   @Column({ type: 'int' })
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(0.0)
   meetLongitude: number;
+
+  @Column({ type: 'int' })
+  @IsNotEmpty()
+  @IsInt()
+  @Min(0)
+  goalPrice: number;
 
   @OneToOne(() => User)
   @JoinColumn()

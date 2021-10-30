@@ -1,6 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 import { Column, Entity, ManyToOne, OneToOne, PrimaryColumn } from 'typeorm';
-import { EatParty } from './eat_party.entity';
+import { Party } from '../party/party.entity';
 
 @Entity({ name: 'User' })
 export class User {
@@ -20,9 +20,9 @@ export class User {
   @Column({ type: 'int', default: 0 })
   point: number;
 
-  @OneToOne(() => EatParty, (party) => party.host)
-  partyForHost: EatParty;
+  @OneToOne(() => Party, (party) => party.host)
+  partyForHost: Party;
 
-  @ManyToOne(() => EatParty, (party) => party.participant)
-  party: EatParty;
+  @ManyToOne(() => Party, (party) => party.participant)
+  party: Party;
 }
