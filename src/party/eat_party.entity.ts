@@ -7,7 +7,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '../entity/user.entity';
+import { User } from '../user/user.entity';
 
 @Entity({ name: 'EatParty' })
 export class EatParty {

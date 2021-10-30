@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { validate } from 'class-validator';
 import { Resp } from 'src/common/response';
 import { EatParty } from 'src/party/eat_party.entity';
-import { User } from 'src/entity/user.entity';
+import { User } from 'src/user/user.entity';
 import { DeleteResult, Repository } from 'typeorm';
 import { CreatePartyDto } from './party.dto';
 
