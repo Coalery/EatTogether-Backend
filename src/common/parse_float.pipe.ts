@@ -1,10 +1,10 @@
 import {
   ArgumentMetadata,
+  HttpException,
   HttpStatus,
   Injectable,
   PipeTransform,
 } from '@nestjs/common';
-import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
 
 @Injectable()
 export class ParseFloatPipe implements PipeTransform<string> {
@@ -14,8 +14,9 @@ export class ParseFloatPipe implements PipeTransform<string> {
       !isNaN(parseFloat(value)) &&
       isFinite(value as any);
     if (!isNumeric) {
-      throw new HttpErrorByCode[HttpStatus.BAD_REQUEST](
+      throw new HttpException(
         'Validation failed (numeric string is expected)',
+        HttpStatus.BAD_REQUEST,
       );
     }
     return parseFloat(value);
