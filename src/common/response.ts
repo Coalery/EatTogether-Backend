@@ -12,14 +12,20 @@ class Resp {
     500: 'Internal Server Error',
   };
 
-  static ok(data: any) {
+  static ok(data: any, raw?: boolean) {
+    if (raw) return data;
     return { code: 200, data: data };
   }
 
-  static error(code: number): ErrorType {
+  static error(code: number, message?: string): ErrorType {
+    let resultMessage: string = this.ERROR_MESSAGE[code];
+    if (message) {
+      resultMessage = resultMessage.concat(' : ').concat(message);
+    }
+
     return {
       code,
-      message: this.ERROR_MESSAGE[code],
+      message: resultMessage,
       timestamp: new Date().toISOString(),
     };
   }

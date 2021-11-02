@@ -1,4 +1,12 @@
-import { IsInt, IsNotEmpty, IsNumber, Length, Min } from 'class-validator';
+import {
+  IsInt,
+  IsLatitude,
+  IsLongitude,
+  IsNotEmpty,
+  IsNumber,
+  Length,
+  Min,
+} from 'class-validator';
 import {
   Column,
   Entity,
@@ -27,13 +35,13 @@ export class Party {
   @Length(1, 100)
   restuarant: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'decimal' })
   @IsNotEmpty()
   @IsNumber()
   @Min(0.0)
   meetLatitude: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'decimal' })
   @IsNotEmpty()
   @IsNumber()
   @Min(0.0)

@@ -9,9 +9,11 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   Req,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { ParseFloatPipe } from 'src/common/parse_float.pipe';
 import { Resp } from 'src/common/response';
 import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
@@ -23,11 +25,22 @@ import { PartyService } from './party.service';
 export class PartyController {
   constructor(private partyService: PartyService) {}
 
+  @Get()
+  async getParties(
+    @Query('latitude', ParseFloatPipe) latitude: number,
+    @Query('longitude', ParseFloatPipe) longitude: number,
+  ) {
+    return Resp.ok(await this.partyService.findNear500m(latitude, longitude));
+  }
+
   @Get(':id')
   async getParty(@Param('id', ParseIntPipe) id: number) {
     const party: Party = await this.partyService.findOne(id);
     if (!party) {
-      throw new HttpException(Resp.error(404), HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        "Can' find party by given id",
+        HttpStatus.NOT_FOUND,
+      );
     }
     return Resp.ok(party);
   }

@@ -1,7 +1,6 @@
 import { HttpException, Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 import * as admin from 'firebase-admin';
-import { Resp } from 'src/common/response';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
@@ -16,10 +15,10 @@ export class AuthMiddleware implements NestMiddleware {
           next();
         })
         .catch(() => {
-          throw new HttpException(Resp.error(403), 403);
+          throw new HttpException('Not Valid Id Token', 403);
         });
     } else {
-      throw new HttpException(Resp.error(403), 403);
+      throw new HttpException('Token is required', 403);
     }
   }
 }
