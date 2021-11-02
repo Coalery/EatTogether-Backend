@@ -29,7 +29,9 @@ export class PartyController {
   async getParties(
     @Query('latitude', ParseFloatPipe) latitude: number,
     @Query('longitude', ParseFloatPipe) longitude: number,
-  ) {}
+  ) {
+    return Resp.ok(await this.partyService.findNear500m(latitude, longitude));
+  }
 
   @Get(':id')
   async getParty(@Param('id', ParseIntPipe) id: number) {

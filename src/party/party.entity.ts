@@ -1,4 +1,12 @@
-import { IsInt, IsNotEmpty, IsNumber, Length, Min } from 'class-validator';
+import {
+  IsInt,
+  IsLatitude,
+  IsLongitude,
+  IsNotEmpty,
+  IsNumber,
+  Length,
+  Min,
+} from 'class-validator';
 import {
   Column,
   Entity,

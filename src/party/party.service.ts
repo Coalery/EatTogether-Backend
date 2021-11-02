@@ -19,6 +19,19 @@ export class PartyService {
   }
 
   async findNear500m(latitude: number, longitude: number): Promise<Party[]> {
+    if (!this.validateLatitude(latitude)) {
+      throw new HttpException(
+        `Wrong Latitude Range : ${latitude}, Latitude must in [-90.0, 90.0]`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (!this.validateLongitude(longitude)) {
+      throw new HttpException(
+        `Wrong Longitude Range : ${longitude}, Longitude must in [-180.0, 180.0]`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     return await this.partyRepository
       .createQueryBuilder()
       .having(
@@ -33,6 +46,14 @@ export class PartyService {
       ) // (`latitude`, `logitude`)와 DB의 (`meetLatitude`, `meetLongitude`)의 거리를 계산하여, 500m 이하인 것만 가져온다.
       .orderBy('distance')
       .getMany();
+  }
+
+  private validateLatitude(latitude: number): boolean {
+    return -90.0 <= latitude && latitude <= 90.0;
+  }
+
+  private validateLongitude(longitude: number): boolean {
+    return -180.0 <= longitude && longitude <= 180.0;
   }
 
   async create(host: User, data: CreatePartyDto): Promise<Party> {
