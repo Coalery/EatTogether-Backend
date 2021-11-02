@@ -37,7 +37,10 @@ export class PartyController {
   async getParty(@Param('id', ParseIntPipe) id: number) {
     const party: Party = await this.partyService.findOne(id);
     if (!party) {
-      throw new HttpException(Resp.error(404), HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        "Can' find party by given id",
+        HttpStatus.NOT_FOUND,
+      );
     }
     return Resp.ok(party);
   }

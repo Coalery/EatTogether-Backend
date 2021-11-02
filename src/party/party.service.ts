@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { validate } from 'class-validator';
-import { Resp } from 'src/common/response';
 import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
 import { DeleteResult, Repository } from 'typeorm';
@@ -69,7 +68,7 @@ export class PartyService {
 
     const errors = await validate(party);
     if (errors.length > 0) {
-      throw new HttpException(Resp.error(400), HttpStatus.BAD_REQUEST);
+      throw new HttpException('Not valid data', HttpStatus.BAD_REQUEST);
     }
 
     const result = this.partyRepository.create(party);
@@ -79,13 +78,16 @@ export class PartyService {
   async edit(user: User, partyId: number, data: EditPartyDto): Promise<Party> {
     let party: Party = await this.partyRepository.findOne(partyId);
     if (party.host.id !== user.id) {
-      throw new HttpException(Resp.error(403), HttpStatus.FORBIDDEN);
+      throw new HttpException(
+        'Party organizer only can edit party content',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     party = { ...party, ...data };
     const erros = await validate(party);
     if (erros.length > 0) {
-      throw new HttpException(Resp.error(400), HttpStatus.BAD_REQUEST);
+      throw new HttpException('Not valid data', HttpStatus.BAD_REQUEST);
     }
 
     return await this.partyRepository.save(data);
@@ -94,7 +96,10 @@ export class PartyService {
   async delete(user: User, partyId: number): Promise<DeleteResult> {
     const party: Party = await this.partyRepository.findOne(partyId);
     if (party.host.id !== user.id) {
-      throw new HttpException(Resp.error(403), HttpStatus.FORBIDDEN);
+      throw new HttpException(
+        'Party organizer only can delete party',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     return await this.partyRepository.delete({ id: partyId });
