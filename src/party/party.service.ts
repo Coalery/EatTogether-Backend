@@ -18,6 +18,23 @@ export class PartyService {
     return await this.partyRepository.findOne({ id });
   }
 
+  async findNear500m(latitude: number, longitude: number): Promise<Party[]> {
+    return await this.partyRepository
+      .createQueryBuilder()
+      .having(
+        `
+          (
+            (
+              6371*acos(cos(radians(${latitude}))*cos(radians(meetLatitude))*cos(radians(meetLongitude)
+              -radians(${longitude}))+sin(radians(${latitude}))*sin(radians(meetLatitude)))
+            ) * 1000
+          ) <= 500
+        `,
+      ) // (`latitude`, `logitude`)와 DB의 (`meetLatitude`, `meetLongitude`)의 거리를 계산하여, 500m 이하인 것만 가져온다.
+      .orderBy('distance')
+      .getMany();
+  }
+
   async create(host: User, data: CreatePartyDto): Promise<Party> {
     const party: Party = new Party();
     party.title = data.title;
