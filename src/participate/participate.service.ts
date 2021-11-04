@@ -35,4 +35,34 @@ export class ParticipateService {
       participant: [...party.participant, requestor],
     });
   }
+
+  async cancelParticipation(
+    partyId: number,
+    participant: User,
+  ): Promise<UpdateResult> {
+    const party: Party = await this.partyRepository.findOne(partyId);
+    if (!party) {
+      throw new HttpException(
+        "Can't find party with given id.",
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const filteredParticipant: User[] = party.participant.filter(
+      (user) => user.id !== participant.id,
+    );
+
+    const isParticipated =
+      filteredParticipant.length !== party.participant.length;
+    if (!isParticipated) {
+      throw new HttpException(
+        `User ${participant.name} didn't participate ${party.title}.`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return await this.partyRepository.update(partyId, {
+      participant: filteredParticipant,
+    });
+  }
 }
