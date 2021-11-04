@@ -1,0 +1,16 @@
+import { Controller, Param, ParseIntPipe, Post, Req } from '@nestjs/common';
+import { Request } from 'express';
+import { ParticipateService } from './participate.service';
+
+@Controller('participate')
+export class ParticipateController {
+  constructor(private participateService: ParticipateService) {}
+
+  @Post(':partyId')
+  async participateToParty(
+    @Req() req: Request,
+    @Param('partyId', ParseIntPipe) partyId: number,
+  ) {
+    return this.participateService.participateToParty(partyId, req['user']);
+  }
+}

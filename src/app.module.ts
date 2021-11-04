@@ -11,6 +11,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './filter/http_exception.filter';
 import { GetUserModule } from './middleware/get_user/get_user.module';
 import { GetUserMiddleware } from './middleware/get_user/get_user.middleware';
+import { ParticipateModule } from './participate/participate.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { GetUserMiddleware } from './middleware/get_user/get_user.middleware';
     PartyModule,
     UserModule,
     GetUserModule,
+    ParticipateModule,
   ],
   controllers: [AppController],
   providers: [
