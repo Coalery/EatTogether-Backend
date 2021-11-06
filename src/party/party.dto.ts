@@ -1,3 +1,5 @@
+import { Party } from './party.entity';
+
 export class CreatePartyDto {
   title: string;
   description?: string;
@@ -7,4 +9,4 @@ export class CreatePartyDto {
   goalPrice: number;
 }
 
-export type EditPartyDto = Partial<CreatePartyDto>;
+export type EditPartyDto = Partial<Omit<Party, 'id' | 'host' | 'participant'>>;

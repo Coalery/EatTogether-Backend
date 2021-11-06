@@ -3,8 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
-  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -36,12 +34,6 @@ export class PartyController {
   @Get(':id')
   async getParty(@Param('id', ParseIntPipe) id: number) {
     const party: Party = await this.partyService.findOne(id);
-    if (!party) {
-      throw new HttpException(
-        "Can' find party by given id",
-        HttpStatus.NOT_FOUND,
-      );
-    }
     return Resp.ok(party);
   }
 

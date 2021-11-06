@@ -14,7 +14,9 @@ export class PartyService {
   ) {}
 
   async findOne(id: number): Promise<Party | undefined> {
-    return await this.partyRepository.findOne({ id });
+    const party: Party = await this.partyRepository.findOne({ id });
+    if (!party) this.partyNotFound();
+    return party;
   }
 
   async findNear500m(latitude: number, longitude: number): Promise<Party[]> {
@@ -77,12 +79,9 @@ export class PartyService {
 
   async edit(user: User, partyId: number, data: EditPartyDto): Promise<Party> {
     let party: Party = await this.partyRepository.findOne(partyId);
-    if (party.host.id !== user.id) {
-      throw new HttpException(
-        'Party organizer only can edit party content',
-        HttpStatus.FORBIDDEN,
-      );
-    }
+
+    if (!party) this.partyNotFound();
+    if (party.host.id !== user.id) this.notOrganizer();
 
     party = { ...party, ...data };
     const erros = await validate(party);
@@ -95,13 +94,24 @@ export class PartyService {
 
   async delete(user: User, partyId: number): Promise<DeleteResult> {
     const party: Party = await this.partyRepository.findOne(partyId);
-    if (party.host.id !== user.id) {
-      throw new HttpException(
-        'Party organizer only can delete party',
-        HttpStatus.FORBIDDEN,
-      );
-    }
+
+    if (!party) this.partyNotFound();
+    if (party.host.id !== user.id) this.notOrganizer();
 
     return await this.partyRepository.delete({ id: partyId });
+  }
+
+  private partyNotFound(): void {
+    throw new HttpException(
+      "Can't find party by given id.",
+      HttpStatus.NOT_FOUND,
+    );
+  }
+
+  private notOrganizer(): void {
+    throw new HttpException(
+      'Party organizer only can delete party',
+      HttpStatus.FORBIDDEN,
+    );
   }
 }
