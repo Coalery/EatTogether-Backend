@@ -1,12 +1,4 @@
-import {
-  IsInt,
-  IsLatitude,
-  IsLongitude,
-  IsNotEmpty,
-  IsNumber,
-  Length,
-  Min,
-} from 'class-validator';
+import { IsInt, IsNotEmpty, IsNumber, Length, Min } from 'class-validator';
 import {
   Column,
   Entity,
@@ -52,6 +44,9 @@ export class Party {
   @IsInt()
   @Min(0)
   goalPrice: number;
+
+  @Column({ type: 'boolean', default: false })
+  isComplete: boolean;
 
   @OneToOne(() => User)
   @JoinColumn()

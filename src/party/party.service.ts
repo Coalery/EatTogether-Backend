@@ -77,6 +77,13 @@ export class PartyService {
 
   async edit(user: User, partyId: number, data: EditPartyDto): Promise<Party> {
     let party: Party = await this.partyRepository.findOne(partyId);
+    if (!party) {
+      throw new HttpException(
+        "Can't find party with given id.",
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     if (party.host.id !== user.id) {
       throw new HttpException(
         'Party organizer only can edit party content',
@@ -95,6 +102,13 @@ export class PartyService {
 
   async delete(user: User, partyId: number): Promise<DeleteResult> {
     const party: Party = await this.partyRepository.findOne(partyId);
+    if (!party) {
+      throw new HttpException(
+        "Can't find party with given id.",
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     if (party.host.id !== user.id) {
       throw new HttpException(
         'Party organizer only can delete party',
