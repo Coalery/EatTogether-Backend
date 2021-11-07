@@ -1,4 +1,12 @@
-import { IsInt, IsNotEmpty, IsNumber, Length, Min } from 'class-validator';
+import {
+  IsDate,
+  IsIn,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  Length,
+  Min,
+} from 'class-validator';
 import {
   Column,
   Entity,
@@ -8,6 +16,14 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../user/user.entity';
+
+const states = [
+  'participating',
+  'gather-complete',
+  'success',
+  'delete',
+] as const;
+type PartyState = typeof states[number];
 
 @Entity({ name: 'Party' })
 export class Party {
@@ -45,8 +61,17 @@ export class Party {
   @Min(0)
   goalPrice: number;
 
-  @Column({ type: 'boolean', default: false })
-  isComplete: boolean;
+  @Column({ type: 'varchar', default: false })
+  @IsIn(states)
+  state: PartyState;
+
+  @Column({ type: 'datetime' })
+  @IsDate()
+  createdAt: Date;
+
+  @Column({ type: 'datetime' })
+  @IsDate()
+  removedAt: Date;
 
   @OneToOne(() => User)
   @JoinColumn()
