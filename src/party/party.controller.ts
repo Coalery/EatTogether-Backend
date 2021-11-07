@@ -54,18 +54,6 @@ export class PartyController {
     return Resp.ok(result);
   }
 
-  @Put('success/:id')
-  async partySuccess(
-    @Req() req: Request,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    const user: User = req['user'];
-    const result: Party = await this.partyService.edit(user, id, {
-      state: 'success',
-    });
-    return Resp.ok(result);
-  }
-
   @Delete(':id')
   async deleteParty(
     @Req() req: Request,
