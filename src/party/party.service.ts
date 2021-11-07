@@ -83,9 +83,11 @@ export class PartyService {
     if (!party) this.partyNotFound();
     if (party.host.id !== user.id) this.notOrganizer();
 
+    if (party.state === 'success') this.alreadySuccessed();
+
     party = { ...party, ...data };
-    const erros = await validate(party);
-    if (erros.length > 0) {
+    const errors = await validate(party);
+    if (errors.length > 0) {
       throw new HttpException('Not valid data', HttpStatus.BAD_REQUEST);
     }
 
@@ -112,6 +114,13 @@ export class PartyService {
     throw new HttpException(
       'Party organizer only can delete party',
       HttpStatus.FORBIDDEN,
+    );
+  }
+
+  private alreadySuccessed(): void {
+    throw new HttpException(
+      "The party is already successed. You can't edit.",
+      HttpStatus.BAD_REQUEST,
     );
   }
 }
