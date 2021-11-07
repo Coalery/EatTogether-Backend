@@ -15,7 +15,6 @@ import { ParseFloatPipe } from 'src/common/parse_float.pipe';
 import { Resp } from 'src/common/response';
 import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
-import { DeleteResult } from 'typeorm';
 import { CreatePartyDto, EditPartyDto } from './party.dto';
 import { PartyService } from './party.service';
 
@@ -61,7 +60,10 @@ export class PartyController {
     @Param('id', ParseIntPipe) id: number,
   ) {
     const user: User = req['user'];
-    const result: DeleteResult = await this.partyService.delete(user, id);
+    const result: Party = await this.partyService.edit(user, id, {
+      removedAt: new Date(),
+      state: 'canceled',
+    });
     return Resp.ok(result);
   }
 }
