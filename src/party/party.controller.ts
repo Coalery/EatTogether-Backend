@@ -62,7 +62,7 @@ export class PartyController {
     const user: User = req['user'];
     const result: Party = await this.partyService.edit(user, id, {
       removedAt: new Date(),
-      state: 'delete',
+      state: 'canceled',
     });
     return Resp.ok(result);
   }

@@ -21,7 +21,7 @@ const states = [
   'participating',
   'gather-complete',
   'success',
-  'delete',
+  'canceled',
 ] as const;
 type PartyState = typeof states[number];
 
