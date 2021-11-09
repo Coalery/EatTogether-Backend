@@ -12,6 +12,7 @@ import { HttpExceptionFilter } from './filter/http_exception.filter';
 import { GetUserModule } from './middleware/get_user/get_user.module';
 import { GetUserMiddleware } from './middleware/get_user/get_user.middleware';
 import { ParticipateModule } from './participate/participate.module';
+import { PurchaseModule } from './purchase/purchase.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ParticipateModule } from './participate/participate.module';
     UserModule,
     GetUserModule,
     ParticipateModule,
+    PurchaseModule,
   ],
   controllers: [AppController],
   providers: [
@@ -35,6 +37,7 @@ export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(AuthMiddleware)
+      .exclude('purchase/webhook')
       .forRoutes('*')
       .apply(GetUserMiddleware)
       .forRoutes(
