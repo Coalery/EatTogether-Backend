@@ -1,5 +1,13 @@
 import { IsNotEmpty } from 'class-validator';
-import { Column, Entity, ManyToOne, OneToOne, PrimaryColumn } from 'typeorm';
+import { Order } from 'src/order/order.entity';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryColumn,
+} from 'typeorm';
 import { Party } from '../party/party.entity';
 
 @Entity({ name: 'User' })
@@ -22,6 +30,9 @@ export class User {
 
   @OneToOne(() => Party, (party) => party.host)
   partyForHost: Party;
+
+  @OneToMany(() => Order, (order) => order.user)
+  order: Order[];
 
   @ManyToOne(() => Party, (party) => party.participant)
   party: Party;
