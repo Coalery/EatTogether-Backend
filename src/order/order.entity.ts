@@ -6,7 +6,6 @@ import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
 @Entity('order')
 export class Order {
   @PrimaryColumn({ type: 'int' })
-  @IsInt()
   id: string;
 
   @Column({ type: 'int' })
