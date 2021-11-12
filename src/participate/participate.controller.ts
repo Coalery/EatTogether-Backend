@@ -1,12 +1,15 @@
 import {
+  Body,
   Controller,
   Delete,
   Param,
   ParseIntPipe,
   Post,
   Req,
+  ValidationPipe,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { OrderDto } from 'src/order/order.dto';
 import { ParticipateService } from './participate.service';
 
 @Controller('participate')
@@ -17,8 +20,13 @@ export class ParticipateController {
   async participateToParty(
     @Req() req: Request,
     @Param('partyId', ParseIntPipe) partyId: number,
+    @Body(ValidationPipe) data: OrderDto,
   ) {
-    return this.participateService.participateToParty(partyId, req['user']);
+    return this.participateService.participateToParty(
+      partyId,
+      req['user'],
+      data,
+    );
   }
 
   @Delete(':partyId')

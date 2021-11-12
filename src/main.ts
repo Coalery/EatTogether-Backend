@@ -18,6 +18,7 @@ async function bootstrap() {
     credential: admin.credential.cert(adminConfig),
   });
 
-  await app.listen(3000);
+  const port: string = configService.get('common.port');
+  await app.listen(port);
 }
 bootstrap();

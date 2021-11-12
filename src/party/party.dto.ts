@@ -9,4 +9,6 @@ export class CreatePartyDto {
   goalPrice: number;
 }
 
-export type EditPartyDto = Partial<Omit<Party, 'id' | 'host' | 'participant'>>;
+export type EditPartyDto = Partial<
+  Omit<Party, 'id' | 'hostOrder' | 'participantOrders'>
+>;
