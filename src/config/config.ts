@@ -8,4 +8,7 @@ export default () => ({
     key: process.env.IAMPORT_KEY || '',
     secret: process.env.IAMPORT_SECRET || '',
   },
+  common: {
+    port: process.env.SERVER_PORT || '8000',
+  },
 });
