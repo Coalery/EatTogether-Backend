@@ -1,5 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { OrderDto } from 'src/order/order.dto';
+import { Order } from 'src/order/order.entity';
 import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
 import { Repository, UpdateResult } from 'typeorm';
@@ -13,6 +15,7 @@ export class ParticipateService {
   async participateToParty(
     partyId: number,
     requestor: User,
+    data: OrderDto,
   ): Promise<UpdateResult> {
     const party: Party = await this.partyRepository.findOne(partyId);
     if (!party) {
@@ -23,7 +26,8 @@ export class ParticipateService {
     }
 
     const isParticipated =
-      party.participant.filter((user) => user.id === requestor.id).length !== 0;
+      party.participantOrders.filter((order) => order.user.id === requestor.id)
+        .length !== 0;
     if (isParticipated) {
       throw new HttpException(
         `User ${requestor.name} participated ${party.title} already.`,
@@ -31,8 +35,14 @@ export class ParticipateService {
       );
     }
 
+    const requestOrder: Order = new Order();
+    requestOrder.id = data.id;
+    requestOrder.amount = data.amount;
+    requestOrder.participantParty = party;
+    requestOrder.user = requestor;
+
     return await this.partyRepository.update(partyId, {
-      participant: [...party.participant, requestor],
+      participantOrders: [...party.participantOrders, requestOrder],
     });
   }
 
@@ -48,12 +58,12 @@ export class ParticipateService {
       );
     }
 
-    const filteredParticipant: User[] = party.participant.filter(
-      (user) => user.id !== participant.id,
+    const filteredParticipant: Order[] = party.participantOrders.filter(
+      (order) => order.user.id !== participant.id,
     );
 
     const isParticipated =
-      filteredParticipant.length !== party.participant.length;
+      filteredParticipant.length !== party.participantOrders.length;
     if (!isParticipated) {
       throw new HttpException(
         `User ${participant.name} didn't participate ${party.title}.`,
@@ -62,7 +72,7 @@ export class ParticipateService {
     }
 
     return await this.partyRepository.update(partyId, {
-      participant: filteredParticipant,
+      participantOrders: filteredParticipant,
     });
   }
 }

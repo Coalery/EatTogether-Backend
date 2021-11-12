@@ -6,24 +6,26 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
+import { OrderService } from 'src/order/order.service';
 
 @Injectable()
 export class PurchaseService {
   constructor(
     private configService: ConfigService,
     private httpService: HttpService,
+    private orderService: OrderService,
   ) {}
 
   async onComplete(imp_uid: string, merchant_uid: string) {
     const accessToken: string = await this.getAccessToken();
     const paymentData = await this.getPaymentData(imp_uid, accessToken);
 
-    const order = await Orders.findById(paymentData.merchant_uid);
+    const order = await this.orderService.findOne(paymentData.merchant_uid);
     const amountToBePaid = order.amount;
 
     const { amount, status } = paymentData;
     if (amount === amountToBePaid) {
-      await Orders.findByIdAndUpdate(merchant_uid, { $set: paymentData });
+      await this.orderService.updateAmount(merchant_uid, amount);
       if (status === 'paid') {
         return { status: 'success', message: '일반 결제 성공' };
       }

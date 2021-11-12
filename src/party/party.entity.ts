@@ -7,6 +7,8 @@ import {
   Length,
   Min,
 } from 'class-validator';
+import { Order } from 'src/order/order.entity';
+import { User } from 'src/user/user.entity';
 import {
   Column,
   Entity,
@@ -15,7 +17,6 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '../user/user.entity';
 
 const states = [
   'participating',
@@ -73,10 +74,10 @@ export class Party {
   @IsDate()
   removedAt: Date;
 
-  @OneToOne(() => User)
+  @OneToOne(() => User, (user) => user.party)
   @JoinColumn()
   host: User;
 
-  @OneToMany(() => User, (user) => user.party)
-  participant: User[];
+  @OneToMany(() => Order, (order) => order.participantParty)
+  participantOrders: Order[];
 }
