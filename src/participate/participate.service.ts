@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ChargeDto } from 'src/charge/charge.dto';
 import { Order } from 'src/order/order.entity';
 import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
@@ -15,7 +14,6 @@ export class ParticipateService {
   async participateToParty(
     partyId: number,
     requestor: User,
-    data: ChargeDto,
   ): Promise<UpdateResult> {
     const party: Party = await this.partyRepository.findOne(partyId);
     if (!party) {
@@ -36,8 +34,8 @@ export class ParticipateService {
     }
 
     const requestOrder: Order = new Order();
-    requestOrder.id = data.id;
-    requestOrder.amount = data.amount;
+    // requestOrder.id = data.id;
+    // requestOrder.amount = data.amount;
     requestOrder.participantParty = party;
     requestOrder.user = requestor;
 
