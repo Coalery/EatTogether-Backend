@@ -1,7 +1,6 @@
 import { IsInt, Min } from 'class-validator';
 
 export class ChargeDto {
-  @IsInt()
   id: string;
 
   @IsInt()
