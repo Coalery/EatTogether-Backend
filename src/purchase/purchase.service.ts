@@ -5,27 +5,32 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
-import { ChargeService } from 'src/charge/charge.service';
+import { Repository } from 'typeorm';
+import { Purchase } from './purchase.entity';
 
 @Injectable()
 export class PurchaseService {
   constructor(
+    @InjectRepository(Purchase)
+    private purchaseRepository: Repository<Purchase>,
     private configService: ConfigService,
     private httpService: HttpService,
-    private chargeService: ChargeService,
   ) {}
 
   async onComplete(imp_uid: string, merchant_uid: string) {
     const accessToken: string = await this.getAccessToken();
     const paymentData = await this.getPaymentData(imp_uid, accessToken);
 
-    const order = await this.chargeService.findOne(paymentData.merchant_uid);
+    const order = await this.purchaseRepository.findOne(
+      paymentData.merchant_uid,
+    );
     const amountToBePaid = order.amount;
 
     const { amount, status } = paymentData;
     if (amount === amountToBePaid) {
-      await this.chargeService.updateAmount(merchant_uid, amount);
+      await this.purchaseRepository.update({ id: merchant_uid }, { amount });
       if (status === 'paid') {
         return { status: 'success', message: '일반 결제 성공' };
       }
