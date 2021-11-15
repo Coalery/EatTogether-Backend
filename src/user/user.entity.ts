@@ -1,6 +1,7 @@
 import { IsNotEmpty } from 'class-validator';
 import { Order } from 'src/order/order.entity';
 import { Party } from 'src/party/party.entity';
+import { Charge } from 'src/charge/charge.entity';
 import { Column, Entity, OneToMany, OneToOne, PrimaryColumn } from 'typeorm';
 
 @Entity({ name: 'User' })
@@ -26,4 +27,7 @@ export class User {
 
   @OneToMany(() => Order, (order) => order.user)
   order: Order[];
+
+  @OneToMany(() => Charge, (charge) => charge.user)
+  charge: Charge[];
 }

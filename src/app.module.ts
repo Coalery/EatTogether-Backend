@@ -14,6 +14,7 @@ import { GetUserMiddleware } from './middleware/get_user/get_user.middleware';
 import { ParticipateModule } from './participate/participate.module';
 import { PurchaseModule } from './purchase/purchase.module';
 import { OrderModule } from './order/order.module';
+import { ChargeModule } from './charge/charge.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { OrderModule } from './order/order.module';
     ParticipateModule,
     PurchaseModule,
     OrderModule,
+    ChargeModule,
   ],
   controllers: [AppController],
   providers: [
