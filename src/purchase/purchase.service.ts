@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
 import { User } from 'src/user/user.entity';
+import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { IamportPaymentsDto } from './purchase.dto';
 import { Purchase } from './purchase.entity';
@@ -19,6 +20,7 @@ export class PurchaseService {
     private purchaseRepository: Repository<Purchase>,
     private configService: ConfigService,
     private httpService: HttpService,
+    private userService: UserService,
   ) {}
 
   async onRequest(
@@ -40,15 +42,16 @@ export class PurchaseService {
       accessToken,
     );
 
-    const order = await this.purchaseRepository.findOne(
+    const purchase: Purchase = await this.purchaseRepository.findOne(
       paymentData.merchant_uid,
     );
-    const amountToBePaid = order.amount;
+    const amountToBePaid = purchase.amount;
 
     const { amount, status } = paymentData;
     if (amount === amountToBePaid) {
       await this.purchaseRepository.update({ merchant_uid }, paymentData);
       if (status === 'paid') {
+        await this.userService.editAmount(purchase.user.id, amount);
         return { status: 'success', message: '일반 결제 성공' };
       }
     } else {
