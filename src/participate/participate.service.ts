@@ -1,28 +1,27 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Party } from 'src/party/party.entity';
+import { PartyService } from 'src/party/party.service';
 import { User } from 'src/user/user.entity';
-import { Repository, UpdateResult } from 'typeorm';
+import { UserService } from 'src/user/user.service';
+import { Repository } from 'typeorm';
 import { Participate } from './participate.entity';
 
 @Injectable()
 export class ParticipateService {
   constructor(
-    @InjectRepository(Party) private partyRepository: Repository<Party>,
+    @InjectRepository(Participate)
+    private participateRepository: Repository<Participate>,
+    private partyService: PartyService,
+    private userService: UserService,
   ) {}
 
   async participateToParty(
     partyId: number,
     requestor: User,
     amount: number,
-  ): Promise<UpdateResult> {
-    const party: Party = await this.partyRepository.findOne(partyId);
-    if (!party) {
-      throw new HttpException(
-        "Can't find party with given id.",
-        HttpStatus.NOT_FOUND,
-      );
-    }
+  ): Promise<Party> {
+    const party: Party = await this.partyService.findOne(partyId);
 
     const isParticipated =
       party.participate.filter((part) => part.participant.id === requestor.id)
@@ -34,43 +33,51 @@ export class ParticipateService {
       );
     }
 
-    const participation: Participate = new Participate();
-    participation.amount = amount;
-    participation.party = party;
-    participation.participant = requestor;
+    await this.userService.editAmount(requestor.id, -amount);
+    const participate: Participate = this.createNewParticipate(
+      amount,
+      party,
+      requestor,
+    );
 
-    return await this.partyRepository.update(partyId, {
-      participate: [...party.participate, participation],
-    });
+    return await this.partyService.participate(partyId, participate);
+  }
+
+  private createNewParticipate(
+    amount: number,
+    party: Party,
+    requestor: User,
+  ): Participate {
+    const rawParticipate: Participate = new Participate();
+    rawParticipate.amount = amount;
+    rawParticipate.party = party;
+    rawParticipate.participant = requestor;
+
+    const participate: Participate =
+      this.participateRepository.create(rawParticipate);
+
+    return participate;
   }
 
   async cancelParticipation(
     partyId: number,
     participant: User,
-  ): Promise<UpdateResult> {
-    const party: Party = await this.partyRepository.findOne(partyId);
-    if (!party) {
-      throw new HttpException(
-        "Can't find party with given id.",
-        HttpStatus.NOT_FOUND,
-      );
-    }
+  ): Promise<boolean> {
+    const party: Party = await this.partyService.findOne(partyId);
 
-    const filteredParticipant: Participate[] = party.participate.filter(
-      (part) => part.participant.id !== participant.id,
+    const targetPart: Participate = party.participate.find(
+      (part) => part.participant.id === participant.id,
     );
 
-    const isParticipated =
-      filteredParticipant.length !== party.participate.length;
-    if (!isParticipated) {
+    if (!targetPart) {
       throw new HttpException(
         `User ${participant.name} didn't participate ${party.title}.`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    return await this.partyRepository.update(partyId, {
-      participate: filteredParticipant,
-    });
+    await this.userService.editAmount(participant.id, targetPart.amount);
+    await this.participateRepository.remove(targetPart);
+    return true;
   }
 }

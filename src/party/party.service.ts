@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { validate } from 'class-validator';
+import { Participate } from 'src/participate/participate.entity';
 import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
 import { DeleteResult, Repository } from 'typeorm';
@@ -9,11 +10,10 @@ import { CreatePartyDto, EditPartyDto } from './party.dto';
 @Injectable()
 export class PartyService {
   constructor(
-    @InjectRepository(Party)
-    private partyRepository: Repository<Party>,
+    @InjectRepository(Party) private partyRepository: Repository<Party>,
   ) {}
 
-  async findOne(id: number): Promise<Party | undefined> {
+  async findOne(id: number): Promise<Party> {
     const party: Party = await this.partyRepository.findOne({ id });
     if (!party) this.partyNotFound();
     return party;
@@ -101,6 +101,12 @@ export class PartyService {
     if (party.host.id !== user.id) this.notOrganizer();
 
     return await this.partyRepository.delete({ id: partyId });
+  }
+
+  async participate(partyId: number, participate: Participate): Promise<Party> {
+    const party: Party = await this.partyRepository.findOne(partyId);
+    party.participate.push(participate);
+    return await this.partyRepository.save(party);
   }
 
   private partyNotFound(): void {
