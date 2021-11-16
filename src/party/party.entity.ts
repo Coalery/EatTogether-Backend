@@ -7,7 +7,7 @@ import {
   Length,
   Min,
 } from 'class-validator';
-import { Order } from 'src/order/order.entity';
+import { Participate } from 'src/participate/participate.entity';
 import { User } from 'src/user/user.entity';
 import {
   Column,
@@ -78,6 +78,6 @@ export class Party {
   @JoinColumn()
   host: User;
 
-  @OneToMany(() => Order, (order) => order.participantParty)
-  participantOrders: Order[];
+  @OneToMany(() => Participate, (participate) => participate.party)
+  participate: Participate[];
 }

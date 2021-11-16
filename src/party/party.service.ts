@@ -66,7 +66,7 @@ export class PartyService {
     party.meetLatitude = data.meetLatitude;
     party.meetLongitude = data.meetLongitude;
     party.goalPrice = data.goalPrice;
-    party.participantOrders = [];
+    party.participate = [];
 
     const errors = await validate(party);
     if (errors.length > 0) {

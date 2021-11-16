@@ -9,6 +9,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { ParticipateDto } from './participate.dto';
 import { ParticipateService } from './participate.service';
 
 @Controller('participate')
@@ -19,12 +20,12 @@ export class ParticipateController {
   async participateToParty(
     @Req() req: Request,
     @Param('partyId', ParseIntPipe) partyId: number,
-    @Body(ValidationPipe) data,
+    @Body(ValidationPipe) data: ParticipateDto,
   ) {
     return this.participateService.participateToParty(
       partyId,
       req['user'],
-      // data,
+      data.amount,
     );
   }
 
