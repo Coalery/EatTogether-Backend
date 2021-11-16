@@ -5,28 +5,53 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
-import { OrderService } from 'src/order/order.service';
+import { User } from 'src/user/user.entity';
+import { UserService } from 'src/user/user.service';
+import { Repository } from 'typeorm';
+import { IamportPaymentsDto } from './purchase.dto';
+import { Purchase } from './purchase.entity';
 
 @Injectable()
 export class PurchaseService {
   constructor(
+    @InjectRepository(Purchase)
+    private purchaseRepository: Repository<Purchase>,
     private configService: ConfigService,
     private httpService: HttpService,
-    private orderService: OrderService,
+    private userService: UserService,
   ) {}
+
+  async onRequest(
+    user: User,
+    merchant_uid: string,
+    amount: number,
+  ): Promise<Purchase> {
+    const newPurchaseRequest: Purchase = new Purchase();
+    newPurchaseRequest.user = user;
+    newPurchaseRequest.merchant_uid = merchant_uid;
+    newPurchaseRequest.amount = amount;
+    return this.purchaseRepository.create(newPurchaseRequest);
+  }
 
   async onComplete(imp_uid: string, merchant_uid: string) {
     const accessToken: string = await this.getAccessToken();
-    const paymentData = await this.getPaymentData(imp_uid, accessToken);
+    const paymentData: IamportPaymentsDto = await this.getPaymentData(
+      imp_uid,
+      accessToken,
+    );
 
-    const order = await this.orderService.findOne(paymentData.merchant_uid);
-    const amountToBePaid = order.amount;
+    const purchase: Purchase = await this.purchaseRepository.findOne(
+      paymentData.merchant_uid,
+    );
+    const amountToBePaid = purchase.amount;
 
     const { amount, status } = paymentData;
     if (amount === amountToBePaid) {
-      await this.orderService.updateAmount(merchant_uid, amount);
+      await this.purchaseRepository.update({ merchant_uid }, paymentData);
       if (status === 'paid') {
+        await this.userService.editAmount(purchase.user.id, amount);
         return { status: 'success', message: '일반 결제 성공' };
       }
     } else {

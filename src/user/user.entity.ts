@@ -1,6 +1,7 @@
 import { IsNotEmpty } from 'class-validator';
-import { Order } from 'src/order/order.entity';
+import { Participate } from 'src/participate/participate.entity';
 import { Party } from 'src/party/party.entity';
+import { Purchase } from 'src/purchase/purchase.entity';
 import { Column, Entity, OneToMany, OneToOne, PrimaryColumn } from 'typeorm';
 
 @Entity({ name: 'User' })
@@ -24,6 +25,9 @@ export class User {
   @OneToOne(() => Party, (party) => party.host)
   party: Party;
 
-  @OneToMany(() => Order, (order) => order.user)
-  order: Order[];
+  @OneToMany(() => Participate, (participate) => participate.participant)
+  participate: Participate[];
+
+  @OneToMany(() => Purchase, (purchase) => purchase.user)
+  purchase: Purchase[];
 }

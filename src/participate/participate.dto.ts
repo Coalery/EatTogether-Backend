@@ -1,9 +1,6 @@
 import { IsInt, Min } from 'class-validator';
 
-export class OrderDto {
-  @IsInt()
-  id: string;
-
+export class ParticipateDto {
   @IsInt()
   @Min(0)
   amount: number;
