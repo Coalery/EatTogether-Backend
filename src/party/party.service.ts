@@ -4,13 +4,15 @@ import { validate } from 'class-validator';
 import { Participate } from 'src/participate/participate.entity';
 import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
-import { DeleteResult, Repository } from 'typeorm';
+import { UserService } from 'src/user/user.service';
+import { Repository } from 'typeorm';
 import { CreatePartyDto, EditPartyDto } from './party.dto';
 
 @Injectable()
 export class PartyService {
   constructor(
     @InjectRepository(Party) private partyRepository: Repository<Party>,
+    private userService: UserService,
   ) {}
 
   async findOne(id: number): Promise<Party> {
@@ -77,12 +79,10 @@ export class PartyService {
     return result;
   }
 
-  async edit(user: User, partyId: number, data: EditPartyDto): Promise<Party> {
+  async edit(partyId: number, data: EditPartyDto): Promise<Party> {
     let party: Party = await this.partyRepository.findOne(partyId);
 
     if (!party) this.partyNotFound();
-    if (party.host.id !== user.id) this.notOrganizer();
-
     if (party.state === 'success') this.alreadySuccessed();
 
     party = { ...party, ...data };
@@ -94,13 +94,14 @@ export class PartyService {
     return await this.partyRepository.save(data);
   }
 
-  async delete(user: User, partyId: number): Promise<DeleteResult> {
-    const party: Party = await this.partyRepository.findOne(partyId);
-
-    if (!party) this.partyNotFound();
-    if (party.host.id !== user.id) this.notOrganizer();
-
-    return await this.partyRepository.delete({ id: partyId });
+  async partySuccess(partyId: number): Promise<Party> {
+    const party: Party = await this.edit(partyId, { state: 'success' });
+    const sumOfPoint: number = party.participate.reduce(
+      (acc, obj) => acc + obj.amount,
+      0,
+    );
+    await this.userService.editAmount(party.host.id, sumOfPoint);
+    return party;
   }
 
   async participate(partyId: number, participate: Participate): Promise<Party> {
@@ -113,13 +114,6 @@ export class PartyService {
     throw new HttpException(
       "Can't find party by given id.",
       HttpStatus.NOT_FOUND,
-    );
-  }
-
-  private notOrganizer(): void {
-    throw new HttpException(
-      'Party organizer only can delete party',
-      HttpStatus.FORBIDDEN,
     );
   }
 
