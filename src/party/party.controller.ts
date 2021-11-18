@@ -19,6 +19,7 @@ import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
 import { AfterCompleteGuard } from './after_complete.guard';
 import { OnlyHostGuard } from './only_host.guard';
+import { OnlyParticipantGuard } from './only_participant.guard';
 import { CreatePartyDto, EditPartyDto } from './party.dto';
 import { MessageType, PartyService } from './party.service';
 
@@ -65,7 +66,7 @@ export class PartyController {
   }
 
   @Put(':partyId/message/:msgType')
-  @UseGuards(AfterCompleteGuard)
+  @UseGuards(AfterCompleteGuard, OnlyParticipantGuard)
   async sendOrderedFoodMessage(
     @UserDeco() user: User,
     @Param('partyId', ParseIntPipe) partyId: number,
