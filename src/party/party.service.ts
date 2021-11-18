@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as admin from 'firebase-admin';
 import { validate } from 'class-validator';
 import { Participate } from 'src/participate/participate.entity';
 import { Party } from 'src/party/party.entity';
@@ -7,6 +8,14 @@ import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { CreatePartyDto, EditPartyDto } from './party.dto';
+
+const message = {
+  'ordered-food': '음식을 주문했습니다.',
+  'deliverer-picked-up': '배달원이 픽업했습니다.',
+  'come-out': '빨리 나와주세요!',
+};
+
+export type MessageType = keyof typeof message;
 
 @Injectable()
 export class PartyService {
@@ -108,6 +117,39 @@ export class PartyService {
     const party: Party = await this.partyRepository.findOne(partyId);
     party.participate.push(participate);
     return await this.partyRepository.save(party);
+  }
+
+  async sendMessage(
+    sender: User,
+    partyId: number,
+    type: MessageType,
+  ): Promise<number> {
+    const party: Party = await this.findOne(partyId);
+
+    if (type === 'ordered-food' || type === 'deliverer-picked-up') {
+      if (party.host.id !== sender.id) {
+        throw new HttpException(
+          'Party organizer only can delete party',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+    }
+
+    const tokens: string[] = [
+      ...party.host.fcmToken,
+      ...party.participate.map((part) => part.participant.fcmToken),
+    ];
+    tokens.splice(tokens.indexOf(sender.fcmToken), 1);
+
+    const resp = await admin.messaging().sendMulticast({
+      notification: {
+        title: `${sender.name}님이 메세지를 보냈습니다!`,
+        body: message[type],
+      },
+      data: { type },
+      tokens: tokens,
+    });
+    return resp.failureCount;
   }
 
   private partyNotFound(): void {

@@ -14,12 +14,13 @@ import {
 import { Request } from 'express';
 import { ParseFloatPipe } from 'src/common/parse_float.pipe';
 import { Resp } from 'src/common/response';
+import { UserDeco } from 'src/common/user.decorator';
 import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
 import { AfterCompleteGuard } from './after_complete.guard';
 import { OnlyHostGuard } from './only_host.guard';
 import { CreatePartyDto, EditPartyDto } from './party.dto';
-import { PartyService } from './party.service';
+import { MessageType, PartyService } from './party.service';
 
 @Controller('party')
 export class PartyController {
@@ -61,6 +62,21 @@ export class PartyController {
   async setPartySuccess(@Param('partyId', ParseIntPipe) id: number) {
     const result: Party = await this.partyService.partySuccess(id);
     return Resp.ok(result);
+  }
+
+  @Put(':partyId/message/:msgType')
+  @UseGuards(AfterCompleteGuard)
+  async sendOrderedFoodMessage(
+    @UserDeco() user: User,
+    @Param('partyId', ParseIntPipe) partyId: number,
+    @Param('msgType') msgType: MessageType,
+  ) {
+    const result: number = await this.partyService.sendMessage(
+      user,
+      partyId,
+      msgType,
+    );
+    return Resp.ok({ failCount: result });
   }
 
   @Delete(':partyId')
