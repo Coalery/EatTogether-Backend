@@ -167,11 +167,14 @@ export class PartyService {
     type: MessageType,
   ) {
     const current: Date = new Date();
-    const millisecDiff: number =
-      current.getTime() - party.otherMessageUsedDate.getTime();
 
-    if (millisecDiff < 30 * 1000) {
-      throw new HttpException(`${millisecDiff}`, HttpStatus.BAD_REQUEST);
+    if (party.otherMessageUsedDate) {
+      const millisecDiff: number =
+        current.getTime() - party.otherMessageUsedDate.getTime();
+
+      if (millisecDiff < 30 * 1000) {
+        throw new HttpException(`${millisecDiff}`, HttpStatus.BAD_REQUEST);
+      }
     }
 
     party.otherMessageUsedDate = current;
