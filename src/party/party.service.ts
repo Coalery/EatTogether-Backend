@@ -127,23 +127,72 @@ export class PartyService {
     const party: Party = await this.findOne(partyId);
 
     if (type === 'ordered-food' || type === 'deliverer-picked-up') {
-      if (party.host.id !== sender.id) {
-        throw new HttpException(
-          'Party organizer only can delete party',
-          HttpStatus.FORBIDDEN,
-        );
-      }
+      return await this.onlyHostMessage(sender, party, type);
+    } else {
+      return await this.participantMessage(sender, party, type);
     }
+  }
+
+  private async onlyHostMessage(sender: User, party: Party, type: MessageType) {
+    if (party.host.id !== sender.id) {
+      throw new HttpException(
+        'Party organizer only can delete party',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    if (
+      (type === 'ordered-food' && party.usedFirstMessage) ||
+      (type === 'deliverer-picked-up' && party.usedSecondMessage)
+    ) {
+      throw new HttpException(
+        `Party organizer used message "{type}" already.`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (type === 'ordered-food') party.usedFirstMessage = true;
+    else if (type === 'deliverer-picked-up') party.usedSecondMessage = true;
+    await this.partyRepository.save(party);
+
+    const tokens: string[] = party.participate.map(
+      (part) => part.participant.fcmToken,
+    );
+    return this.requestFCM(sender.name, type, tokens);
+  }
+
+  private async participantMessage(
+    sender: User,
+    party: Party,
+    type: MessageType,
+  ) {
+    const current: Date = new Date();
+    const millisecDiff: number =
+      current.getTime() - party.otherMessageUsedDate.getTime();
+
+    if (millisecDiff < 30 * 1000) {
+      throw new HttpException(`${millisecDiff}`, HttpStatus.BAD_REQUEST);
+    }
+
+    party.otherMessageUsedDate = current;
+    await this.partyRepository.save(party);
 
     const tokens: string[] = [
       ...party.host.fcmToken,
       ...party.participate.map((part) => part.participant.fcmToken),
     ];
     tokens.splice(tokens.indexOf(sender.fcmToken), 1);
+    return this.requestFCM(sender.name, type, tokens);
+  }
 
+  private async requestFCM(
+    senderName: string,
+    type: MessageType,
+    tokens: string[],
+  ): Promise<number> {
     const resp = await admin.messaging().sendMulticast({
       notification: {
-        title: `${sender.name}님이 메세지를 보냈습니다!`,
+        title: `${senderName}님이 메세지를 보냈습니다!`,
         body: message[type],
       },
       data: { type },
