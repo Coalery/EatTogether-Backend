@@ -67,7 +67,7 @@ export class PartyController {
 
   @Put(':partyId/message/:msgType')
   @UseGuards(AfterCompleteGuard, OnlyParticipantGuard)
-  async sendOrderedFoodMessage(
+  async sendMessage(
     @UserDeco() user: User,
     @Param('partyId', ParseIntPipe) partyId: number,
     @Param('msgType') msgType: MessageType,
