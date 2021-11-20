@@ -9,14 +9,19 @@ import {
   Put,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ParseFloatPipe } from 'src/common/parse_float.pipe';
 import { Resp } from 'src/common/response';
+import { UserDeco } from 'src/common/user.decorator';
 import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
+import { AfterCompleteGuard } from './after_complete.guard';
+import { OnlyHostGuard } from './only_host.guard';
+import { OnlyParticipantGuard } from './only_participant.guard';
 import { CreatePartyDto, EditPartyDto } from './party.dto';
-import { PartyService } from './party.service';
+import { MessageType, PartyService } from './party.service';
 
 @Controller('party')
 export class PartyController {
@@ -30,8 +35,8 @@ export class PartyController {
     return Resp.ok(await this.partyService.findNear500m(latitude, longitude));
   }
 
-  @Get(':id')
-  async getParty(@Param('id', ParseIntPipe) id: number) {
+  @Get(':partyId')
+  async getParty(@Param('partyId', ParseIntPipe) id: number) {
     const party: Party = await this.partyService.findOne(id);
     return Resp.ok(party);
   }
@@ -43,24 +48,42 @@ export class PartyController {
     return Resp.ok(party);
   }
 
-  @Put(':id')
+  @Put(':partyId')
+  @UseGuards(OnlyHostGuard)
   async editParty(
-    @Req() req: Request,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('partyId', ParseIntPipe) id: number,
     @Body() data: EditPartyDto,
   ) {
-    const user: User = req['user'];
-    const result: Party = await this.partyService.edit(user, id, data);
+    const result: Party = await this.partyService.edit(id, data);
     return Resp.ok(result);
   }
 
-  @Delete(':id')
-  async deleteParty(
-    @Req() req: Request,
-    @Param('id', ParseIntPipe) id: number,
+  @Put(':partyId/success')
+  @UseGuards(AfterCompleteGuard, OnlyHostGuard)
+  async setPartySuccess(@Param('partyId', ParseIntPipe) id: number) {
+    const result: Party = await this.partyService.partySuccess(id);
+    return Resp.ok(result);
+  }
+
+  @Put(':partyId/message/:msgType')
+  @UseGuards(AfterCompleteGuard, OnlyParticipantGuard)
+  async sendMessage(
+    @UserDeco() user: User,
+    @Param('partyId', ParseIntPipe) partyId: number,
+    @Param('msgType') msgType: MessageType,
   ) {
-    const user: User = req['user'];
-    const result: Party = await this.partyService.edit(user, id, {
+    const result: number = await this.partyService.sendMessage(
+      user,
+      partyId,
+      msgType,
+    );
+    return Resp.ok({ failCount: result });
+  }
+
+  @Delete(':partyId')
+  @UseGuards(OnlyHostGuard)
+  async deleteParty(@Param('partyId', ParseIntPipe) id: number) {
+    const result: Party = await this.partyService.edit(id, {
       removedAt: new Date(),
       state: 'canceled',
     });

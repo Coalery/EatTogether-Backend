@@ -1,16 +1,27 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as admin from 'firebase-admin';
 import { validate } from 'class-validator';
 import { Participate } from 'src/participate/participate.entity';
 import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
-import { DeleteResult, Repository } from 'typeorm';
+import { UserService } from 'src/user/user.service';
+import { Repository } from 'typeorm';
 import { CreatePartyDto, EditPartyDto } from './party.dto';
+
+const message = {
+  'ordered-food': '음식을 주문했습니다.',
+  'deliverer-picked-up': '배달원이 픽업했습니다.',
+  'come-out': '빨리 나와주세요!',
+};
+
+export type MessageType = keyof typeof message;
 
 @Injectable()
 export class PartyService {
   constructor(
     @InjectRepository(Party) private partyRepository: Repository<Party>,
+    private userService: UserService,
   ) {}
 
   async findOne(id: number): Promise<Party> {
@@ -77,12 +88,10 @@ export class PartyService {
     return result;
   }
 
-  async edit(user: User, partyId: number, data: EditPartyDto): Promise<Party> {
+  async edit(partyId: number, data: EditPartyDto): Promise<Party> {
     let party: Party = await this.partyRepository.findOne(partyId);
 
     if (!party) this.partyNotFound();
-    if (party.host.id !== user.id) this.notOrganizer();
-
     if (party.state === 'success') this.alreadySuccessed();
 
     party = { ...party, ...data };
@@ -94,13 +103,14 @@ export class PartyService {
     return await this.partyRepository.save(data);
   }
 
-  async delete(user: User, partyId: number): Promise<DeleteResult> {
-    const party: Party = await this.partyRepository.findOne(partyId);
-
-    if (!party) this.partyNotFound();
-    if (party.host.id !== user.id) this.notOrganizer();
-
-    return await this.partyRepository.delete({ id: partyId });
+  async partySuccess(partyId: number): Promise<Party> {
+    const party: Party = await this.edit(partyId, { state: 'success' });
+    const sumOfPoint: number = party.participate.reduce(
+      (acc, obj) => acc + obj.amount,
+      0,
+    );
+    await this.userService.editAmount(party.host.id, sumOfPoint);
+    return party;
   }
 
   async participate(partyId: number, participate: Participate): Promise<Party> {
@@ -109,17 +119,95 @@ export class PartyService {
     return await this.partyRepository.save(party);
   }
 
+  async sendMessage(
+    sender: User,
+    partyId: number,
+    type: MessageType,
+  ): Promise<number> {
+    const party: Party = await this.findOne(partyId);
+
+    if (type === 'ordered-food' || type === 'deliverer-picked-up') {
+      return await this.onlyHostMessage(sender, party, type);
+    } else {
+      return await this.participantMessage(sender, party, type);
+    }
+  }
+
+  private async onlyHostMessage(sender: User, party: Party, type: MessageType) {
+    if (party.host.id !== sender.id) {
+      throw new HttpException(
+        'Party organizer only can delete party',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    if (
+      (type === 'ordered-food' && party.usedFirstMessage) ||
+      (type === 'deliverer-picked-up' && party.usedSecondMessage)
+    ) {
+      throw new HttpException(
+        `Party organizer used message "{type}" already.`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (type === 'ordered-food') party.usedFirstMessage = true;
+    else if (type === 'deliverer-picked-up') party.usedSecondMessage = true;
+    await this.partyRepository.save(party);
+
+    const tokens: string[] = party.participate.map(
+      (part) => part.participant.fcmToken,
+    );
+    return this.requestFCM(sender.name, type, tokens);
+  }
+
+  private async participantMessage(
+    sender: User,
+    party: Party,
+    type: MessageType,
+  ) {
+    const current: Date = new Date();
+
+    if (party.otherMessageUsedDate) {
+      const millisecDiff: number =
+        current.getTime() - party.otherMessageUsedDate.getTime();
+
+      if (millisecDiff < 30 * 1000) {
+        throw new HttpException(`${millisecDiff}`, HttpStatus.BAD_REQUEST);
+      }
+    }
+
+    party.otherMessageUsedDate = current;
+    await this.partyRepository.save(party);
+
+    const tokens: string[] = [
+      ...party.host.fcmToken,
+      ...party.participate.map((part) => part.participant.fcmToken),
+    ];
+    tokens.splice(tokens.indexOf(sender.fcmToken), 1);
+    return this.requestFCM(sender.name, type, tokens);
+  }
+
+  private async requestFCM(
+    senderName: string,
+    type: MessageType,
+    tokens: string[],
+  ): Promise<number> {
+    const resp = await admin.messaging().sendMulticast({
+      notification: {
+        title: `${senderName}님이 메세지를 보냈습니다!`,
+        body: message[type],
+      },
+      data: { type },
+      tokens: tokens,
+    });
+    return resp.failureCount;
+  }
+
   private partyNotFound(): void {
     throw new HttpException(
       "Can't find party by given id.",
       HttpStatus.NOT_FOUND,
-    );
-  }
-
-  private notOrganizer(): void {
-    throw new HttpException(
-      'Party organizer only can delete party',
-      HttpStatus.FORBIDDEN,
     );
   }
 

@@ -22,6 +22,9 @@ export class User {
   @Column({ type: 'int', default: 0 })
   point: number;
 
+  @Column({ type: 'varchar' })
+  fcmToken: string;
+
   @OneToOne(() => Party, (party) => party.host)
   party: Party;
 

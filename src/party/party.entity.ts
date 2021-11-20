@@ -74,6 +74,15 @@ export class Party {
   @IsDate()
   removedAt: Date;
 
+  @Column({ type: 'bool' })
+  usedFirstMessage: boolean;
+
+  @Column({ type: 'bool' })
+  usedSecondMessage: boolean;
+
+  @Column({ type: 'datetime' })
+  otherMessageUsedDate: Date;
+
   @OneToOne(() => User, (user) => user.party)
   @JoinColumn()
   host: User;
