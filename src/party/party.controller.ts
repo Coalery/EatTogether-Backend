@@ -9,6 +9,7 @@ import {
   Put,
   Query,
   UseGuards,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ParseFloatPipe } from 'src/common/parse_float.pipe';
 import { UserDeco } from 'src/common/user.decorator';
@@ -37,7 +38,10 @@ export class PartyController {
   }
 
   @Post()
-  async createParty(@UserDeco() user: User, @Body() data: CreatePartyDto) {
+  async createParty(
+    @UserDeco() user: User,
+    @Body(ValidationPipe) data: CreatePartyDto,
+  ) {
     return await this.partyService.create(user, data);
   }
 
