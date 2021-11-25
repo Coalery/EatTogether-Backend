@@ -2,11 +2,11 @@ import {
   Body,
   Controller,
   Post,
-  Req,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { UserDeco } from 'src/common/user.decorator';
+import { User } from 'src/user/user.entity';
 import {
   PurchaseCompleteDto,
   PurchaseRequestDto,
@@ -21,11 +21,11 @@ export class PurchaseController {
 
   @Post('request')
   async onRequest(
-    @Req() req: Request,
+    @UserDeco() user: User,
     @Body(ValidationPipe) data: PurchaseRequestDto,
   ) {
     return await this.purchaseService.onRequest(
-      req['user'],
+      user,
       data.merchant_uid,
       data.amount,
     );

@@ -8,10 +8,8 @@ import {
   Post,
   Put,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { ParseFloatPipe } from 'src/common/parse_float.pipe';
 import { UserDeco } from 'src/common/user.decorator';
 import { User } from 'src/user/user.entity';
@@ -39,8 +37,7 @@ export class PartyController {
   }
 
   @Post()
-  async createParty(@Req() req: Request, @Body() data: CreatePartyDto) {
-    const user: User = req['user'];
+  async createParty(@UserDeco() user: User, @Body() data: CreatePartyDto) {
     return await this.partyService.create(user, data);
   }
 
