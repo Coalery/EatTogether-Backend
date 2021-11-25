@@ -7,7 +7,7 @@ import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
-import { CreatePartyDto, EditPartyDto } from './party.dto';
+import { CreatePartyDto } from './party.dto';
 
 const message = {
   'ordered-food': '음식을 주문했습니다.',
@@ -88,7 +88,7 @@ export class PartyService {
     return result;
   }
 
-  async edit(partyId: number, data: EditPartyDto): Promise<Party> {
+  async edit(partyId: number, data: Partial<Party>): Promise<Party> {
     let party: Party = await this.partyRepository.findOne(partyId);
 
     if (!party) this.partyNotFound();
