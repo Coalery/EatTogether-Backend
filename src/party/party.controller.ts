@@ -55,7 +55,7 @@ export class PartyController {
   }
 
   @Put(':partyId/success')
-  @UseGuards(AfterCompleteGuard, OnlyHostGuard)
+  @UseGuards(AfterCompleteGuard, OnlyParticipantGuard)
   async setPartySuccess(@Param('partyId', ParseIntPipe) id: number) {
     return await this.partyService.partySuccess(id);
   }
