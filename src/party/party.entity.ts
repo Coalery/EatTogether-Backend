@@ -11,6 +11,7 @@ import { Participate } from 'src/participate/participate.entity';
 import { User } from 'src/user/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   OneToMany,
@@ -62,17 +63,17 @@ export class Party {
   @Min(0)
   goalPrice: number;
 
-  @Column({ type: 'varchar', default: false })
+  @Column({ type: 'varchar', default: 'participating' })
   @IsIn(states)
   state: PartyState;
 
-  @Column({ type: 'datetime' })
+  @CreateDateColumn()
   @IsDate()
   createdAt: Date;
 
-  @Column({ type: 'datetime' })
+  @Column({ type: 'datetime', nullable: true })
   @IsDate()
-  removedAt: Date;
+  removedAt?: Date;
 
   @Column({ type: 'bool' })
   usedFirstMessage: boolean;
@@ -80,8 +81,8 @@ export class Party {
   @Column({ type: 'bool' })
   usedSecondMessage: boolean;
 
-  @Column({ type: 'datetime' })
-  otherMessageUsedDate: Date;
+  @Column({ type: 'datetime', nullable: true })
+  otherMessageUsedDate?: Date;
 
   @OneToOne(() => User, (user) => user.party)
   @JoinColumn()
