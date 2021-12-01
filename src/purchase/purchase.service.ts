@@ -35,7 +35,7 @@ export class PurchaseService {
     return this.purchaseRepository.create(newPurchaseRequest);
   }
 
-  async onComplete(imp_uid: string, merchant_uid: string) {
+  async onComplete(imp_uid: string, merchant_uid: string): Promise<boolean> {
     const accessToken: string = await this.getAccessToken();
     const paymentData: IamportPaymentsDto = await this.getPaymentData(
       imp_uid,
@@ -52,7 +52,7 @@ export class PurchaseService {
       await this.purchaseRepository.update({ merchant_uid }, paymentData);
       if (status === 'paid') {
         await this.userService.editAmount(purchase.user.id, amount);
-        return { status: 'success', message: '일반 결제 성공' };
+        return true;
       }
     } else {
       throw new HttpException('Forged payment.', HttpStatus.BAD_REQUEST);

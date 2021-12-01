@@ -22,11 +22,12 @@ export class ParticipateController {
     @Param('partyId', ParseIntPipe) partyId: number,
     @Body(ValidationPipe) data: ParticipateDto,
   ) {
-    return this.participateService.participateToParty(
+    await this.participateService.participateToParty(
       partyId,
       user,
       data.amount,
     );
+    return {};
   }
 
   @Delete(':partyId')

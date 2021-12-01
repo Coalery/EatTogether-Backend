@@ -24,23 +24,22 @@ export class PurchaseController {
     @UserDeco() user: User,
     @Body(ValidationPipe) data: PurchaseRequestDto,
   ) {
-    return await this.purchaseService.onRequest(
-      user,
-      data.merchant_uid,
-      data.amount,
-    );
+    await this.purchaseService.onRequest(user, data.merchant_uid, data.amount);
+    return {};
   }
 
   @Post('complete')
   async onComplete(@Body() purchaseInfo: PurchaseCompleteDto) {
     const { imp_uid, merchant_uid } = purchaseInfo;
-    return await this.purchaseService.onComplete(imp_uid, merchant_uid);
+    await this.purchaseService.onComplete(imp_uid, merchant_uid);
+    return {};
   }
 
   @Post('webhook')
   @UseGuards(PurchaseGuard)
   async purchaseWebhook(@Body() purchaseInfo: PurchaseWebhookDto) {
     const { imp_uid, merchant_uid } = purchaseInfo;
-    return await this.purchaseService.onComplete(imp_uid, merchant_uid);
+    await this.purchaseService.onComplete(imp_uid, merchant_uid);
+    return {};
   }
 }
