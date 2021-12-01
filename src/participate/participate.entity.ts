@@ -8,6 +8,9 @@ export class Participate {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'bool', default: false })
+  isSuccessAgree: boolean;
+
   @Column({ type: 'int' })
   @IsInt()
   @Min(0)
