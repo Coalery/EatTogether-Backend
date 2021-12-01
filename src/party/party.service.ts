@@ -25,7 +25,12 @@ export class PartyService {
   ) {}
 
   async findOne(id: number): Promise<Party> {
-    const party: Party = await this.partyRepository.findOne({ id });
+    const party: Party = await this.partyRepository
+      .createQueryBuilder('party')
+      .leftJoinAndSelect('party.host', 'host')
+      .leftJoinAndSelect('party.participate', 'participate')
+      .where('party.`id` = :id', { id })
+      .getOne();
     if (!party) this.partyNotFound();
     return party;
   }
@@ -44,18 +49,21 @@ export class PartyService {
       );
     }
 
+    // (`latitude`, `logitude`)와 DB의 (`meetLatitude`, `meetLongitude`)의 거리를 계산하여, 500m 이하인 것만 가져온다.
     return await this.partyRepository
-      .createQueryBuilder()
-      .having(
+      .createQueryBuilder('party')
+      .leftJoinAndSelect('party.host', 'host')
+      .addSelect(
         `
+        (
           (
-            (
-              6371*acos(cos(radians(${latitude}))*cos(radians(meetLatitude))*cos(radians(meetLongitude)
-              -radians(${longitude}))+sin(radians(${latitude}))*sin(radians(meetLatitude)))
-            ) * 1000
-          ) <= 500
-        `,
-      ) // (`latitude`, `logitude`)와 DB의 (`meetLatitude`, `meetLongitude`)의 거리를 계산하여, 500m 이하인 것만 가져온다.
+            6371*acos(cos(radians(${latitude}))*cos(radians(meetLatitude))*cos(radians(meetLongitude)
+            -radians(${longitude}))+sin(radians(${latitude}))*sin(radians(meetLatitude)))
+          ) * 1000
+        ) <= 500
+      `,
+        'distance',
+      )
       .orderBy('distance')
       .getMany();
   }
@@ -103,14 +111,14 @@ export class PartyService {
     return await this.partyRepository.save(data);
   }
 
-  async partySuccess(partyId: number): Promise<Party> {
+  async partySuccess(partyId: number): Promise<boolean> {
     const party: Party = await this.edit(partyId, { state: 'success' });
     const sumOfPoint: number = party.participate.reduce(
       (acc, obj) => acc + obj.amount,
       0,
     );
     await this.userService.editAmount(party.host.id, sumOfPoint);
-    return party;
+    return true;
   }
 
   async participate(partyId: number, participate: Participate): Promise<Party> {
