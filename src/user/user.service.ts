@@ -18,7 +18,10 @@ export class UserService {
 
     if (user.point + amount < 0) {
       throw new HttpException(
-        `User ${user.name} not have enough points.`,
+        {
+          type: 'no-point',
+          reason: `User ${user.name} not have enough points.`,
+        },
         HttpStatus.BAD_REQUEST,
       );
     }

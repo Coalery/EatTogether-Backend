@@ -28,7 +28,10 @@ export class ParticipateService {
         .length !== 0;
     if (isParticipated) {
       throw new HttpException(
-        `User ${requestor.name} participated ${party.title} already.`,
+        {
+          type: 'already-participated',
+          reason: `User ${requestor.name} participated '${party.title}' already.`,
+        },
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -71,7 +74,10 @@ export class ParticipateService {
 
     if (!targetPart) {
       throw new HttpException(
-        `User ${participant.name} didn't participate ${party.title}.`,
+        {
+          type: 'not-participated',
+          reason: `User ${participant.name} didn't participate '${party.title}'.`,
+        },
         HttpStatus.BAD_REQUEST,
       );
     }
