@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -15,6 +15,7 @@ import { ParticipateModule } from './participate/participate.module';
 import { PurchaseModule } from './purchase/purchase.module';
 import { TransformInterceptor } from './common/transform.interceptor';
 import { CatchAllFilter } from './common/catch_all.filter';
+import { AppLoggerMiddleware } from './common/logger.middleware';
 
 @Module({
   imports: [
@@ -40,13 +41,8 @@ import { CatchAllFilter } from './common/catch_all.filter';
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(AuthMiddleware)
+      .apply(AppLoggerMiddleware, AuthMiddleware, GetUserMiddleware)
       .exclude('purchase/webhook')
-      .forRoutes('*')
-      .apply(GetUserMiddleware)
-      .forRoutes(
-        { path: 'party', method: RequestMethod.POST },
-        { path: 'party', method: RequestMethod.DELETE },
-      );
+      .forRoutes('*');
   }
 }
