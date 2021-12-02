@@ -8,7 +8,6 @@ import {
   Min,
 } from 'class-validator';
 import { Participate } from 'src/participate/participate.entity';
-import { User } from 'src/user/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -84,9 +83,9 @@ export class Party {
   @Column({ type: 'datetime', nullable: true })
   otherMessageUsedDate?: Date;
 
-  @OneToOne(() => User, (user) => user.party)
+  @OneToOne(() => Participate, (participate) => participate.partyForHost)
   @JoinColumn()
-  host: User;
+  host: Participate;
 
   @OneToMany(() => Participate, (participate) => participate.party)
   participate: Participate[];

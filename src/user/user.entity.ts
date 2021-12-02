@@ -1,8 +1,7 @@
 import { IsNotEmpty } from 'class-validator';
 import { Participate } from 'src/participate/participate.entity';
-import { Party } from 'src/party/party.entity';
 import { Purchase } from 'src/purchase/purchase.entity';
-import { Column, Entity, OneToMany, OneToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 
 @Entity({ name: 'User' })
 export class User {
@@ -24,9 +23,6 @@ export class User {
 
   @Column({ type: 'varchar' })
   fcmToken: string;
-
-  @OneToOne(() => Party, (party) => party.host)
-  party: Party;
 
   @OneToMany(() => Participate, (participate) => participate.participant)
   participate: Participate[];

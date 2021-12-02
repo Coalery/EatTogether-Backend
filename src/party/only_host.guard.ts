@@ -28,7 +28,7 @@ export class OnlyHostGuard implements CanActivate {
     const party: Party = await this.partyService.findOne(partyId);
     const user: User = req['user'];
 
-    if (party.host.id !== user.id) {
+    if (party.host.participant.id !== user.id) {
       throw new HttpException(
         'Party organizer only can delete party',
         HttpStatus.FORBIDDEN,

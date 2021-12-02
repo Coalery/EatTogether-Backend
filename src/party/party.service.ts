@@ -28,7 +28,9 @@ export class PartyService {
     const party: Party = await this.partyRepository
       .createQueryBuilder('party')
       .leftJoinAndSelect('party.host', 'host')
+      .leftJoinAndSelect('host.participant', 'host_user')
       .leftJoinAndSelect('party.participate', 'participate')
+      .leftJoinAndSelect('participate.participant', 'participant_user')
       .where('party.`id` = :id', { id })
       .getOne();
     if (!party) this.partyNotFound();
@@ -53,6 +55,7 @@ export class PartyService {
     return await this.partyRepository
       .createQueryBuilder('party')
       .leftJoinAndSelect('party.host', 'host')
+      .leftJoinAndSelect('host.participant', 'host_user')
       .addSelect(
         `
         (
@@ -77,11 +80,16 @@ export class PartyService {
   }
 
   async create(host: User, data: CreatePartyDto): Promise<Party> {
+    const hostParticipate: Participate = new Participate();
+    hostParticipate.amount = 0;
+    hostParticipate.isSuccessAgree = false;
+    hostParticipate.participant = host;
+
     const party: Party = new Party();
     party.title = data.title;
     party.description = data.description;
     party.restuarant = data.restuarant;
-    party.host = host;
+    party.host = hostParticipate;
     party.meetLatitude = data.meetLatitude;
     party.meetLongitude = data.meetLongitude;
     party.goalPrice = data.goalPrice;
@@ -117,7 +125,7 @@ export class PartyService {
       (acc, obj) => acc + obj.amount,
       0,
     );
-    await this.userService.editAmount(party.host.id, sumOfPoint);
+    await this.userService.editAmount(party.host.participant.id, sumOfPoint);
     return true;
   }
 
@@ -142,7 +150,7 @@ export class PartyService {
   }
 
   private async onlyHostMessage(sender: User, party: Party, type: MessageType) {
-    if (party.host.id !== sender.id) {
+    if (party.host.participant.id !== sender.id) {
       throw new HttpException(
         'Party organizer only can delete party',
         HttpStatus.FORBIDDEN,
@@ -189,7 +197,7 @@ export class PartyService {
     await this.partyRepository.save(party);
 
     const tokens: string[] = [
-      ...party.host.fcmToken,
+      ...party.host.participant.fcmToken,
       ...party.participate.map((part) => part.participant.fcmToken),
     ];
     tokens.splice(tokens.indexOf(sender.fcmToken), 1);
