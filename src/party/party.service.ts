@@ -89,18 +89,22 @@ export class PartyService {
     party.title = data.title;
     party.description = data.description;
     party.restuarant = data.restuarant;
-    party.host = hostParticipate;
+    party.hostId = host.id;
+    party.state = 'participating';
     party.meetLatitude = data.meetLatitude;
     party.meetLongitude = data.meetLongitude;
     party.goalPrice = data.goalPrice;
-    party.participate = [];
+    party.participate = [hostParticipate];
+
+    console.log(party);
 
     const errors = await validate(party);
+    console.log(errors);
     if (errors.length > 0) {
       throw new HttpException('Not valid data', HttpStatus.BAD_REQUEST);
     }
 
-    const result = this.partyRepository.create(party);
+    const result = await this.partyRepository.save(party);
     return result;
   }
 
@@ -125,7 +129,7 @@ export class PartyService {
       (acc, obj) => acc + obj.amount,
       0,
     );
-    await this.userService.editAmount(party.host.participant.id, sumOfPoint);
+    await this.userService.editAmount(party.hostId, sumOfPoint);
     return true;
   }
 
@@ -150,7 +154,7 @@ export class PartyService {
   }
 
   private async onlyHostMessage(sender: User, party: Party, type: MessageType) {
-    if (party.host.participant.id !== sender.id) {
+    if (party.hostId !== sender.id) {
       throw new HttpException(
         'Party organizer only can delete party',
         HttpStatus.FORBIDDEN,
@@ -196,10 +200,9 @@ export class PartyService {
     party.otherMessageUsedDate = current;
     await this.partyRepository.save(party);
 
-    const tokens: string[] = [
-      ...party.host.participant.fcmToken,
-      ...party.participate.map((part) => part.participant.fcmToken),
-    ];
+    const tokens: string[] = party.participate.map(
+      (part) => part.participant.fcmToken,
+    );
     tokens.splice(tokens.indexOf(sender.fcmToken), 1);
     return this.requestFCM(sender.name, type, tokens);
   }

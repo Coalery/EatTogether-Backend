@@ -32,7 +32,7 @@ export class OnlyParticipantGuard implements CanActivate {
       (acc, prev) => acc || prev.participant.id === user.id,
       false,
     );
-    if (party.host.participant.id !== user.id && !isParticipated) {
+    if (party.hostId !== user.id && !isParticipated) {
       throw new HttpException(
         'Party participant only can delete party',
         HttpStatus.FORBIDDEN,

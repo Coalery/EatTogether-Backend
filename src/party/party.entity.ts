@@ -1,5 +1,4 @@
 import {
-  IsDate,
   IsIn,
   IsInt,
   IsNotEmpty,
@@ -12,9 +11,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -67,26 +64,25 @@ export class Party {
   state: PartyState;
 
   @CreateDateColumn()
-  @IsDate()
   createdAt: Date;
 
   @Column({ type: 'datetime', nullable: true })
-  @IsDate()
   removedAt?: Date;
 
-  @Column({ type: 'bool' })
+  @Column({ type: 'bool', default: false })
   usedFirstMessage: boolean;
 
-  @Column({ type: 'bool' })
+  @Column({ type: 'bool', default: false })
   usedSecondMessage: boolean;
 
   @Column({ type: 'datetime', nullable: true })
   otherMessageUsedDate?: Date;
 
-  @OneToOne(() => Participate, (participate) => participate.partyForHost)
-  @JoinColumn()
-  host: Participate;
+  @Column({ type: 'varchar' })
+  hostId: string;
 
-  @OneToMany(() => Participate, (participate) => participate.party)
+  @OneToMany(() => Participate, (participate) => participate.party, {
+    cascade: true,
+  })
   participate: Participate[];
 }
