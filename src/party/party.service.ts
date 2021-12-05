@@ -27,8 +27,6 @@ export class PartyService {
   async findOne(id: number): Promise<Party> {
     const party: Party = await this.partyRepository
       .createQueryBuilder('party')
-      .leftJoinAndSelect('party.host', 'host')
-      .leftJoinAndSelect('host.participant', 'host_user')
       .leftJoinAndSelect('party.participate', 'participate')
       .leftJoinAndSelect('participate.participant', 'participant_user')
       .where('party.`id` = :id', { id })
@@ -54,8 +52,8 @@ export class PartyService {
     // (`latitude`, `logitude`)와 DB의 (`meetLatitude`, `meetLongitude`)의 거리를 계산하여, 500m 이하인 것만 가져온다.
     return await this.partyRepository
       .createQueryBuilder('party')
-      .leftJoinAndSelect('party.host', 'host')
-      .leftJoinAndSelect('host.participant', 'host_user')
+      .leftJoinAndSelect('party.participate', 'participate')
+      .leftJoinAndSelect('participate.participant', 'participant_user')
       .addSelect(
         `
         (
