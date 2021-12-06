@@ -37,7 +37,7 @@ export class ParticipateService {
     }
 
     await this.userService.editAmount(requestor.id, -amount);
-    const participate: Participate = this.createNewParticipate(
+    const participate: Participate = await this.createNewParticipate(
       amount,
       party,
       requestor,
@@ -46,20 +46,39 @@ export class ParticipateService {
     return await this.partyService.participate(partyId, participate);
   }
 
-  private createNewParticipate(
+  private async createNewParticipate(
     amount: number,
     party: Party,
     requestor: User,
-  ): Participate {
+  ): Promise<Participate> {
     const rawParticipate: Participate = new Participate();
     rawParticipate.amount = amount;
     rawParticipate.party = party;
     rawParticipate.participant = requestor;
 
-    const participate: Participate =
-      this.participateRepository.create(rawParticipate);
+    const participate: Participate = await this.participateRepository.save(
+      rawParticipate,
+    );
 
     return participate;
+  }
+
+  async agreeSuccess(partyId: number, requestor: User): Promise<boolean> {
+    const party: Party = await this.partyService.findOne(partyId);
+    const target: Participate = party.participate.filter(
+      (part) => part.participant.id === requestor.id,
+    )[0];
+    target.isSuccessAgree = true;
+    await this.participateRepository.save(target);
+
+    const notAgree: Participate[] = party.participate.filter(
+      (part) => !part.isSuccessAgree,
+    );
+    if (notAgree.length == 1 && notAgree[0].id == target.id) {
+      await this.partyService.partySuccess(partyId);
+    }
+
+    return true;
   }
 
   async cancelParticipation(

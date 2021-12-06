@@ -66,9 +66,6 @@ export class PartyController {
   @Put(':partyId/success')
   @UseGuards(AfterCompleteGuard, OnlyParticipantGuard)
   async setPartySuccess(@Param('partyId', ParseIntPipe) id: number) {
-    // 모두가 성공을 동의했을 때 주최자에게 포인트가 가도록 변경해야함.
-    // 지금은 호스트가 성공 처리하는 형태임
-    // 수정 후에 API 명세도 수정해야함.
     const result: boolean = await this.partyService.partySuccess(id);
     return { result };
   }

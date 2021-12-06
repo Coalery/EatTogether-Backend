@@ -5,9 +5,13 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
+  UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { UserDeco } from 'src/common/user.decorator';
+import { AfterCompleteGuard } from 'src/party/after_complete.guard';
+import { OnlyParticipantGuard } from 'src/party/only_participant.guard';
 import { User } from 'src/user/user.entity';
 import { ParticipateDto } from './participate.dto';
 import { ParticipateService } from './participate.service';
@@ -27,6 +31,16 @@ export class ParticipateController {
       user,
       data.amount,
     );
+    return {};
+  }
+
+  @Put(':partyId/success')
+  @UseGuards(AfterCompleteGuard, OnlyParticipantGuard)
+  async agreeSuccess(
+    @UserDeco() user: User,
+    @Param('partyId', ParseIntPipe) partyId: number,
+  ) {
+    await this.participateService.agreeSuccess(partyId, user);
     return {};
   }
 
