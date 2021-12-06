@@ -13,6 +13,15 @@ export class UserService {
     return await this.userRepository.findOne(uid);
   }
 
+  async findOndDetail(uid: string): Promise<User> {
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.participate', 'participate')
+      .leftJoinAndSelect('participate.party', 'party')
+      .where('user.`id` = :uid', { uid })
+      .getOne();
+  }
+
   async editAmount(uid: string, amount: number): Promise<User> {
     const user: User = await this.userRepository.findOne(uid);
 
