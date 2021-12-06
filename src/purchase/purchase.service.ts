@@ -32,7 +32,8 @@ export class PurchaseService {
     newPurchaseRequest.user = user;
     newPurchaseRequest.merchant_uid = merchant_uid;
     newPurchaseRequest.amount = amount;
-    return this.purchaseRepository.create(newPurchaseRequest);
+    newPurchaseRequest.status = 'ready';
+    return await this.purchaseRepository.save(newPurchaseRequest);
   }
 
   async onComplete(imp_uid: string, merchant_uid: string): Promise<boolean> {
@@ -42,16 +43,27 @@ export class PurchaseService {
       accessToken,
     );
 
-    const purchase: Purchase = await this.purchaseRepository.findOne(
-      paymentData.merchant_uid,
-    );
+    const purchase: Purchase = await this.purchaseRepository
+      .createQueryBuilder('purchase')
+      .leftJoinAndSelect('purchase.user', 'user')
+      .where('purchase.merchant_uid = :mid', { mid: paymentData.merchant_uid })
+      .getOne();
     const amountToBePaid = purchase.amount;
 
     const { amount, status } = paymentData;
     if (amount === amountToBePaid) {
-      await this.purchaseRepository.update({ merchant_uid }, paymentData);
+      await this.purchaseRepository.update(
+        { merchant_uid },
+        {
+          imp_uid: paymentData.imp_uid,
+          status: paymentData.status,
+        },
+      );
       if (status === 'paid') {
         await this.userService.editAmount(purchase.user.id, amount);
+        return true;
+      } else if (status === 'cancelled') {
+        await this.userService.editAmount(purchase.user.id, -amount);
         return true;
       }
     } else {

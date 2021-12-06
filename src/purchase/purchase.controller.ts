@@ -7,11 +7,7 @@ import {
 } from '@nestjs/common';
 import { UserDeco } from 'src/common/user.decorator';
 import { User } from 'src/user/user.entity';
-import {
-  PurchaseCompleteDto,
-  PurchaseRequestDto,
-  PurchaseWebhookDto,
-} from './purchase.dto';
+import { PurchaseRequestDto, PurchaseWebhookDto } from './purchase.dto';
 import { PurchaseGuard } from './purchase.guard';
 import { PurchaseService } from './purchase.service';
 
@@ -25,13 +21,6 @@ export class PurchaseController {
     @Body(ValidationPipe) data: PurchaseRequestDto,
   ) {
     await this.purchaseService.onRequest(user, data.merchant_uid, data.amount);
-    return {};
-  }
-
-  @Post('complete')
-  async onComplete(@Body() purchaseInfo: PurchaseCompleteDto) {
-    const { imp_uid, merchant_uid } = purchaseInfo;
-    await this.purchaseService.onComplete(imp_uid, merchant_uid);
     return {};
   }
 
