@@ -122,6 +122,20 @@ export class PartyService {
     return await this.partyRepository.save(party);
   }
 
+  async deleteParty(partyId: number): Promise<boolean> {
+    await this.edit(partyId, {
+      removedAt: new Date(),
+      state: 'canceled',
+    });
+
+    const party: Party = await this.findOne(partyId);
+    party.participate.map(async (part) => {
+      await this.userService.editAmount(part.participant.id, part.amount);
+    });
+
+    return true;
+  }
+
   async partySuccess(partyId: number): Promise<boolean> {
     const party: Party = await this.edit(partyId, { state: 'success' });
     const sumOfPoint: number = party.participate.reduce(

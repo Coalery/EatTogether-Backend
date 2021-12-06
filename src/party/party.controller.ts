@@ -91,11 +91,7 @@ export class PartyController {
   @Delete(':partyId')
   @UseGuards(OnlyHostGuard)
   async deleteParty(@Param('partyId', ParseIntPipe) id: number) {
-    // 서비스 내에 삭제 함수로 분리하여 참가자에게 포인트 돌려주는 로직 추가
-    await this.partyService.edit(id, {
-      removedAt: new Date(),
-      state: 'canceled',
-    });
+    await this.partyService.deleteParty(id);
     return {};
   }
 }
