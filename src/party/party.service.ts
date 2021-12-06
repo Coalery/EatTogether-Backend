@@ -66,6 +66,7 @@ export class PartyService {
         'distance',
       )
       .orderBy('distance')
+      .where('party.state <> "canceled"')
       .getMany();
   }
 
@@ -118,7 +119,7 @@ export class PartyService {
       throw new HttpException('Not valid data', HttpStatus.BAD_REQUEST);
     }
 
-    return await this.partyRepository.save(data);
+    return await this.partyRepository.save(party);
   }
 
   async partySuccess(partyId: number): Promise<boolean> {

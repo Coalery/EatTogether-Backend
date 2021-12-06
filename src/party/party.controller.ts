@@ -54,10 +54,23 @@ export class PartyController {
     return await this.partyService.edit(id, data);
   }
 
+  @Put(':partyId/cancel')
+  @UseGuards(OnlyHostGuard)
+  async cancelParty(@Param('partyId', ParseIntPipe) id: number) {
+    await this.partyService.edit(id, {
+      state: 'canceled',
+    });
+    return {};
+  }
+
   @Put(':partyId/success')
   @UseGuards(AfterCompleteGuard, OnlyParticipantGuard)
   async setPartySuccess(@Param('partyId', ParseIntPipe) id: number) {
-    return await this.partyService.partySuccess(id);
+    // 모두가 성공을 동의했을 때 주최자에게 포인트가 가도록 변경해야함.
+    // 지금은 호스트가 성공 처리하는 형태임
+    // 수정 후에 API 명세도 수정해야함.
+    const result: boolean = await this.partyService.partySuccess(id);
+    return { result };
   }
 
   @Put(':partyId/message/:msgType')
@@ -78,9 +91,11 @@ export class PartyController {
   @Delete(':partyId')
   @UseGuards(OnlyHostGuard)
   async deleteParty(@Param('partyId', ParseIntPipe) id: number) {
-    return await this.partyService.edit(id, {
+    // 서비스 내에 삭제 함수로 분리하여 참가자에게 포인트 돌려주는 로직 추가
+    await this.partyService.edit(id, {
       removedAt: new Date(),
       state: 'canceled',
     });
+    return {};
   }
 }
