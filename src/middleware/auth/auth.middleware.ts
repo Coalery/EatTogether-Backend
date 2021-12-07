@@ -15,7 +15,11 @@ export class AuthMiddleware implements NestMiddleware {
           next();
         })
         .catch(() => {
-          throw new HttpException('Not Valid Id Token', 403);
+          res.status(403).json({
+            code: 403,
+            message: 'Not Valid Id Token',
+            timestamp: new Date().toISOString(),
+          });
         });
     } else {
       throw new HttpException('Token is required', 403);
