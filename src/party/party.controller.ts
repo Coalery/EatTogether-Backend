@@ -54,15 +54,6 @@ export class PartyController {
     return await this.partyService.edit(id, data);
   }
 
-  @Put(':partyId/cancel')
-  @UseGuards(OnlyHostGuard)
-  async cancelParty(@Param('partyId', ParseIntPipe) id: number) {
-    await this.partyService.edit(id, {
-      state: 'canceled',
-    });
-    return {};
-  }
-
   @Put(':partyId/message/:msgType')
   @UseGuards(AfterCompleteGuard, OnlyParticipantGuard)
   async sendMessage(
