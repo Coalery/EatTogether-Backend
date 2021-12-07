@@ -63,13 +63,6 @@ export class PartyController {
     return {};
   }
 
-  @Put(':partyId/success')
-  @UseGuards(AfterCompleteGuard, OnlyParticipantGuard)
-  async setPartySuccess(@Param('partyId', ParseIntPipe) id: number) {
-    const result: boolean = await this.partyService.partySuccess(id);
-    return { result };
-  }
-
   @Put(':partyId/message/:msgType')
   @UseGuards(AfterCompleteGuard, OnlyParticipantGuard)
   async sendMessage(
