@@ -28,13 +28,16 @@ export class ParticipateService {
         .length !== 0;
     if (isParticipated) {
       throw new HttpException(
-        `User ${requestor.name} participated ${party.title} already.`,
+        {
+          type: 'already-participated',
+          reason: `User ${requestor.name} participated '${party.title}' already.`,
+        },
         HttpStatus.BAD_REQUEST,
       );
     }
 
     await this.userService.editAmount(requestor.id, -amount);
-    const participate: Participate = this.createNewParticipate(
+    const participate: Participate = await this.createNewParticipate(
       amount,
       party,
       requestor,
@@ -43,20 +46,39 @@ export class ParticipateService {
     return await this.partyService.participate(partyId, participate);
   }
 
-  private createNewParticipate(
+  private async createNewParticipate(
     amount: number,
     party: Party,
     requestor: User,
-  ): Participate {
+  ): Promise<Participate> {
     const rawParticipate: Participate = new Participate();
     rawParticipate.amount = amount;
     rawParticipate.party = party;
     rawParticipate.participant = requestor;
 
-    const participate: Participate =
-      this.participateRepository.create(rawParticipate);
+    const participate: Participate = await this.participateRepository.save(
+      rawParticipate,
+    );
 
     return participate;
+  }
+
+  async agreeSuccess(partyId: number, requestor: User): Promise<boolean> {
+    const party: Party = await this.partyService.findOne(partyId);
+    const target: Participate = party.participate.filter(
+      (part) => part.participant.id === requestor.id,
+    )[0];
+    target.isSuccessAgree = true;
+    await this.participateRepository.save(target);
+
+    const notAgree: Participate[] = party.participate.filter(
+      (part) => !part.isSuccessAgree,
+    );
+    if (notAgree.length == 1 && notAgree[0].id == target.id) {
+      await this.partyService.partySuccess(partyId);
+    }
+
+    return true;
   }
 
   async cancelParticipation(
@@ -71,7 +93,10 @@ export class ParticipateService {
 
     if (!targetPart) {
       throw new HttpException(
-        `User ${participant.name} didn't participate ${party.title}.`,
+        {
+          type: 'not-participated',
+          reason: `User ${participant.name} didn't participate '${party.title}'.`,
+        },
         HttpStatus.BAD_REQUEST,
       );
     }

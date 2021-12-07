@@ -7,7 +7,7 @@ import { Party } from 'src/party/party.entity';
 import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
-import { CreatePartyDto, EditPartyDto } from './party.dto';
+import { CreatePartyDto } from './party.dto';
 
 const message = {
   'ordered-food': '음식을 주문했습니다.',
@@ -25,7 +25,12 @@ export class PartyService {
   ) {}
 
   async findOne(id: number): Promise<Party> {
-    const party: Party = await this.partyRepository.findOne({ id });
+    const party: Party = await this.partyRepository
+      .createQueryBuilder('party')
+      .leftJoinAndSelect('party.participate', 'participate')
+      .leftJoinAndSelect('participate.participant', 'participant_user')
+      .where('party.`id` = :id', { id })
+      .getOne();
     if (!party) this.partyNotFound();
     return party;
   }
@@ -44,19 +49,24 @@ export class PartyService {
       );
     }
 
+    // (`latitude`, `logitude`)와 DB의 (`meetLatitude`, `meetLongitude`)의 거리를 계산하여, 500m 이하인 것만 가져온다.
     return await this.partyRepository
-      .createQueryBuilder()
-      .having(
+      .createQueryBuilder('party')
+      .leftJoinAndSelect('party.participate', 'participate')
+      .leftJoinAndSelect('participate.participant', 'participant_user')
+      .addSelect(
         `
+        (
           (
-            (
-              6371*acos(cos(radians(${latitude}))*cos(radians(meetLatitude))*cos(radians(meetLongitude)
-              -radians(${longitude}))+sin(radians(${latitude}))*sin(radians(meetLatitude)))
-            ) * 1000
-          ) <= 500
-        `,
-      ) // (`latitude`, `logitude`)와 DB의 (`meetLatitude`, `meetLongitude`)의 거리를 계산하여, 500m 이하인 것만 가져온다.
+            6371*acos(cos(radians(${latitude}))*cos(radians(meetLatitude))*cos(radians(meetLongitude)
+            -radians(${longitude}))+sin(radians(${latitude}))*sin(radians(meetLatitude)))
+          ) * 1000
+        ) <= 500
+      `,
+        'distance',
+      )
       .orderBy('distance')
+      .where('party.state <> "canceled"')
       .getMany();
   }
 
@@ -69,26 +79,35 @@ export class PartyService {
   }
 
   async create(host: User, data: CreatePartyDto): Promise<Party> {
+    const hostParticipate: Participate = new Participate();
+    hostParticipate.amount = 0;
+    hostParticipate.isSuccessAgree = false;
+    hostParticipate.participant = host;
+
     const party: Party = new Party();
     party.title = data.title;
     party.description = data.description;
     party.restuarant = data.restuarant;
-    party.host = host;
+    party.hostId = host.id;
+    party.state = 'participating';
     party.meetLatitude = data.meetLatitude;
     party.meetLongitude = data.meetLongitude;
     party.goalPrice = data.goalPrice;
-    party.participate = [];
+    party.participate = [hostParticipate];
+
+    console.log(party);
 
     const errors = await validate(party);
+    console.log(errors);
     if (errors.length > 0) {
       throw new HttpException('Not valid data', HttpStatus.BAD_REQUEST);
     }
 
-    const result = this.partyRepository.create(party);
+    const result = await this.partyRepository.save(party);
     return result;
   }
 
-  async edit(partyId: number, data: EditPartyDto): Promise<Party> {
+  async edit(partyId: number, data: Partial<Party>): Promise<Party> {
     let party: Party = await this.partyRepository.findOne(partyId);
 
     if (!party) this.partyNotFound();
@@ -100,17 +119,31 @@ export class PartyService {
       throw new HttpException('Not valid data', HttpStatus.BAD_REQUEST);
     }
 
-    return await this.partyRepository.save(data);
+    return await this.partyRepository.save(party);
   }
 
-  async partySuccess(partyId: number): Promise<Party> {
+  async deleteParty(partyId: number): Promise<boolean> {
+    await this.edit(partyId, {
+      removedAt: new Date(),
+      state: 'canceled',
+    });
+
+    const party: Party = await this.findOne(partyId);
+    party.participate.map(async (part) => {
+      await this.userService.editAmount(part.participant.id, part.amount);
+    });
+
+    return true;
+  }
+
+  async partySuccess(partyId: number): Promise<boolean> {
     const party: Party = await this.edit(partyId, { state: 'success' });
     const sumOfPoint: number = party.participate.reduce(
       (acc, obj) => acc + obj.amount,
       0,
     );
-    await this.userService.editAmount(party.host.id, sumOfPoint);
-    return party;
+    await this.userService.editAmount(party.hostId, sumOfPoint);
+    return true;
   }
 
   async participate(partyId: number, participate: Participate): Promise<Party> {
@@ -134,7 +167,7 @@ export class PartyService {
   }
 
   private async onlyHostMessage(sender: User, party: Party, type: MessageType) {
-    if (party.host.id !== sender.id) {
+    if (party.hostId !== sender.id) {
       throw new HttpException(
         'Party organizer only can delete party',
         HttpStatus.FORBIDDEN,
@@ -180,10 +213,9 @@ export class PartyService {
     party.otherMessageUsedDate = current;
     await this.partyRepository.save(party);
 
-    const tokens: string[] = [
-      ...party.host.fcmToken,
-      ...party.participate.map((part) => part.participant.fcmToken),
-    ];
+    const tokens: string[] = party.participate.map(
+      (part) => part.participant.fcmToken,
+    );
     tokens.splice(tokens.indexOf(sender.fcmToken), 1);
     return this.requestFCM(sender.name, type, tokens);
   }

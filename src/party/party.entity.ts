@@ -1,5 +1,4 @@
 import {
-  IsDate,
   IsIn,
   IsInt,
   IsNotEmpty,
@@ -8,13 +7,11 @@ import {
   Min,
 } from 'class-validator';
 import { Participate } from 'src/participate/participate.entity';
-import { User } from 'src/user/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
-  JoinColumn,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -62,31 +59,30 @@ export class Party {
   @Min(0)
   goalPrice: number;
 
-  @Column({ type: 'varchar', default: false })
+  @Column({ type: 'varchar', default: 'participating' })
   @IsIn(states)
   state: PartyState;
 
-  @Column({ type: 'datetime' })
-  @IsDate()
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ type: 'datetime' })
-  @IsDate()
-  removedAt: Date;
+  @Column({ type: 'datetime', nullable: true })
+  removedAt?: Date;
 
-  @Column({ type: 'bool' })
+  @Column({ type: 'bool', default: false })
   usedFirstMessage: boolean;
 
-  @Column({ type: 'bool' })
+  @Column({ type: 'bool', default: false })
   usedSecondMessage: boolean;
 
-  @Column({ type: 'datetime' })
-  otherMessageUsedDate: Date;
+  @Column({ type: 'datetime', nullable: true })
+  otherMessageUsedDate?: Date;
 
-  @OneToOne(() => User, (user) => user.party)
-  @JoinColumn()
-  host: User;
+  @Column({ type: 'varchar' })
+  hostId: string;
 
-  @OneToMany(() => Participate, (participate) => participate.party)
+  @OneToMany(() => Participate, (participate) => participate.party, {
+    cascade: true,
+  })
   participate: Participate[];
 }
