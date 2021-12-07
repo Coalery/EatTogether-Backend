@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -41,8 +41,14 @@ import { AppLoggerMiddleware } from './common/logger.middleware';
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(AppLoggerMiddleware, AuthMiddleware, GetUserMiddleware)
+      .apply(AppLoggerMiddleware, AuthMiddleware)
       .exclude('purchase/webhook')
+      .forRoutes('*')
+      .apply(GetUserMiddleware)
+      .exclude('purchase/webhook', {
+        path: 'user',
+        method: RequestMethod.POST,
+      })
       .forRoutes('*');
   }
 }
